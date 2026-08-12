@@ -1,3 +1,3 @@
 """Tower of Babel — AI systems engineering Rosetta Stone."""
 
-__version__ = "0.1.0"
+__version__ = "1.5.0"
