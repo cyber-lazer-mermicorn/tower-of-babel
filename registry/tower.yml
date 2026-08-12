@@ -1,5 +1,4 @@
-# Canonical Tower authority — do not hand-edit generated surfaces
-version: "1.2.0"
+version: "1.3.0"
 name: tower-of-babel
 purpose: AI systems engineering Rosetta Stone for remote AI development roles
 
@@ -143,6 +142,62 @@ floors:
     easy: languages/julia/easy_matrix.jl
     advanced: languages/julia/advanced_orbital_verlet.jl
     interfaces: [orbital_state, energy_drift]
+
+  - id: haskell
+    name: Haskell
+    class: language
+    what: Pure transformations and rich type-level models with controlled effects
+    where: Compilers, DSLs, formal models, correctness-sensitive policy logic
+    when: Algebraic structure and purity simplify reasoning about complex state
+    why: Type system and immutable semantics make invalid transformations harder to express
+    how: Capability-policy AST validation with algebraic decisions and deterministic receipt
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/haskell/easy_tree.hs
+    advanced: languages/haskell/advanced_ast_validator.hs
+    interfaces: [policy_ast, decision_receipt]
+
+  - id: zig
+    name: Zig
+    class: language
+    what: Explicit portable native software with compile-time metaprogramming and C interop
+    where: Portable CLIs, allocators, cross-compilation, small runtime components
+    when: Cross-target delivery, allocator control, or C integration dominates
+    why: Explicit failure paths, no hidden allocation, first-class cross-compilation
+    how: Mission-scoped arena with hard allocation budget and deterministic reset
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/zig/easy_hello.zig
+    advanced: languages/zig/advanced_arena_allocator.zig
+    interfaces: [arena, budget_receipt]
+
+  - id: mojo
+    name: Mojo
+    class: language
+    what: Python-like authoring with systems-level types, ownership, and accelerator-oriented compilation
+    where: AI kernels, SIMD tensor code, model serving components, MLIR-backed optimization
+    when: Python ergonomics must reach native or accelerator performance in one language
+    why: Compiler stack targets heterogeneous AI hardware while retaining familiar syntax
+    how: SIMD affine-clamp tensor kernel sketch with explicit vector width
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/mojo/easy_simd.mojo
+    advanced: languages/mojo/advanced_simd_tensor_kernel.mojo
+    interfaces: [tensor_kernel]
+
+  - id: elixir
+    name: Elixir
+    class: language
+    what: Massive numbers of isolated processes under supervision on the BEAM
+    where: Realtime backends, event systems, self-healing agent clusters, coordination services
+    when: Fault isolation, uptime, and highly concurrent messaging dominate
+    why: BEAM supervision makes failure a managed lifecycle event
+    how: Supervised idempotent mission worker with duplicate rejection and crash accounting
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/elixir/easy_actor.ex
+    advanced: languages/elixir/advanced_fault_tolerant_beam.ex
+    interfaces: [mission_worker, supervision_receipt]
 
   - id: sql
     name: SQL / pgvector
