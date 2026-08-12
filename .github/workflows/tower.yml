@@ -32,6 +32,12 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Install Python package
         run: python -m pip install -e ".[dev]"
 
@@ -51,7 +57,23 @@ jobs:
           python languages/eval/advanced_eval_harness.py
           python languages/onnx/easy_linear_model.py
           python languages/onnx/advanced_moe_router_ref.py
+          python languages/triton/easy_vector_add.py
+          python languages/triton/advanced_fused_attention_ref.py
           python flagship/run_pipeline.py
+
+      - name: C++ exhibits
+        run: |
+          g++ -std=c++17 -O2 languages/cpp/easy_vector.cpp -o /tmp/easy_vector
+          /tmp/easy_vector
+          g++ -std=c++17 -O2 languages/cpp/advanced_kv_score_cache.cpp -o /tmp/kv_cache
+          /tmp/kv_cache
+
+      - name: Java exhibits
+        run: |
+          javac languages/java/easy_hello.java -d /tmp
+          java -cp /tmp easy_hello
+          javac languages/java/advanced_bounded_work_queue.java -d /tmp
+          java -cp /tmp advanced_bounded_work_queue
 
       - name: Rust exhibits
         run: |
