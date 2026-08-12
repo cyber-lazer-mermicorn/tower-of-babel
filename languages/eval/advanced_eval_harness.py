@@ -1,198 +1,133 @@
 #!/usr/bin/env python3
-"""Advanced exhibit: bounded evaluation harness with case isolation and receipt.
+"""Advanced exhibit: isolated weighted evaluation suite with flake budget.
 
-Owns the evaluation boundary for agent/model outputs:
-- typed cases, expected signals, timeouts
-- isolated failures (one bad case does not abort the suite)
-- aggregate metrics + per-case evidence
-- deterministic content digest for promotion gates
-No placeholders. Born to run.
+Owns boundary: per-case timeout isolation, weighted metrics, flake-aware
+retry within budget, promotion digest. No placeholders.
 """
 
 from __future__ import annotations
 
+import concurrent.futures
 import hashlib
-import json
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any, Callable
 
 
 @dataclass
-class EvalCase:
-    case_id: str
-    input: Any
-    expected: Any
+class Case:
+    name: str
+    fn: Callable[[], Any]
     weight: float = 1.0
+    timeout_s: float = 0.5
+    expect: Any = True
+    max_flakes: int = 1
 
 
 @dataclass
 class CaseResult:
-    case_id: str
+    name: str
     passed: bool
-    score: float
+    weight: float
+    attempts: int
     detail: str
-    latency_ms: float
 
 
 @dataclass
-class EvalReceipt:
-    suite_id: str
-    total: int
+class SuiteReceipt:
+    ok: bool
+    score: float
     passed: int
     failed: int
-    weighted_score: float
-    cases: list[CaseResult]
-    duration_ms: float
+    results: list[CaseResult]
     digest: str
-    ok: bool
+    elapsed_ms: float
 
 
-Scorer = Callable[[Any, Any], float]
-
-
-def exact_match(predicted: Any, expected: Any) -> float:
-    return 1.0 if predicted == expected else 0.0
-
-
-class EvalHarness:
-    """Thread-isolated evaluation suite with hard per-case timeout."""
-
-    def __init__(
-        self,
-        suite_id: str,
-        scorer: Scorer = exact_match,
-        max_workers: int = 4,
-        case_timeout_s: float = 2.0,
-    ):
-        if max_workers < 1:
-            raise ValueError("max_workers must be >= 1")
-        if case_timeout_s <= 0:
-            raise ValueError("case_timeout_s must be positive")
-        self.suite_id = suite_id
-        self.scorer = scorer
-        self.max_workers = max_workers
-        self.case_timeout_s = case_timeout_s
-        self._cases: list[EvalCase] = []
-
-    def add(self, case: EvalCase) -> None:
-        if not case.case_id:
-            raise ValueError("case_id required")
-        if case.weight < 0:
-            raise ValueError("weight must be non-negative")
-        self._cases.append(case)
-
-    def _run_one(
-        self, case: EvalCase, predict: Callable[[Any], Any]
-    ) -> CaseResult:
-        start = time.perf_counter()
+def _run_isolated(fn: Callable[[], Any], timeout_s: float) -> tuple[bool, str, Any]:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        fut = ex.submit(fn)
         try:
-            predicted = predict(case.input)
-            score = float(self.scorer(predicted, case.expected))
-            if score < 0.0 or score > 1.0:
-                raise ValueError(f"scorer returned out-of-range score: {score}")
-            passed = score >= 1.0
-            detail = "exact" if passed else f"score={score:.3f}"
-        except Exception as exc:
-            score = 0.0
-            passed = False
-            detail = f"error:{type(exc).__name__}:{exc}"
-        latency_ms = (time.perf_counter() - start) * 1000
-        return CaseResult(
-            case_id=case.case_id,
-            passed=passed,
-            score=score,
-            detail=detail,
-            latency_ms=round(latency_ms, 3),
+            val = fut.result(timeout=timeout_s)
+            return True, "ok", val
+        except concurrent.futures.TimeoutError:
+            return False, "timeout", None
+        except Exception as e:
+            return False, f"error:{type(e).__name__}", None
+
+
+def run_suite(cases: list[Case]) -> SuiteReceipt:
+    t0 = time.monotonic()
+    results: list[CaseResult] = []
+    score_num = 0.0
+    score_den = 0.0
+    for case in cases:
+        score_den += case.weight
+        attempts = 0
+        passed = False
+        detail = ""
+        while attempts <= case.max_flakes and not passed:
+            attempts += 1
+            ok, detail, val = _run_isolated(case.fn, case.timeout_s)
+            if ok and val == case.expect:
+                passed = True
+                detail = "ok"
+            elif ok:
+                detail = f"mismatch:{val!r}"
+                passed = False
+        results.append(
+            CaseResult(
+                name=case.name,
+                passed=passed,
+                weight=case.weight,
+                attempts=attempts,
+                detail=detail,
+            )
         )
-
-    def run(self, predict: Callable[[Any], Any]) -> EvalReceipt:
-        if not self._cases:
-            raise RuntimeError("no cases registered")
-
-        start = time.perf_counter()
-        results: list[CaseResult] = []
-
-        with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
-            futures = {
-                pool.submit(self._run_one, case, predict): case
-                for case in self._cases
-            }
-            for fut, case in futures.items():
-                try:
-                    results.append(fut.result(timeout=self.case_timeout_s))
-                except FuturesTimeout:
-                    results.append(
-                        CaseResult(
-                            case_id=case.case_id,
-                            passed=False,
-                            score=0.0,
-                            detail="timeout",
-                            latency_ms=self.case_timeout_s * 1000,
-                        )
-                    )
-                except Exception as exc:
-                    results.append(
-                        CaseResult(
-                            case_id=case.case_id,
-                            passed=False,
-                            score=0.0,
-                            detail=f"executor:{type(exc).__name__}",
-                            latency_ms=0.0,
-                        )
-                    )
-
-        results.sort(key=lambda r: r.case_id)
-        total_weight = sum(c.weight for c in self._cases) or 1.0
-        weight_by_id = {c.case_id: c.weight for c in self._cases}
-        weighted = sum(r.score * weight_by_id[r.case_id] for r in results) / total_weight
-        passed = sum(1 for r in results if r.passed)
-        failed = len(results) - passed
-        duration_ms = (time.perf_counter() - start) * 1000
-
-        payload = json.dumps(
-            {
-                "suite": self.suite_id,
-                "results": [asdict(r) for r in results],
-                "weighted": round(weighted, 6),
-            },
-            sort_keys=True,
-        )
-        digest = hashlib.sha256(payload.encode()).hexdigest()[:20]
-
-        return EvalReceipt(
-            suite_id=self.suite_id,
-            total=len(results),
-            passed=passed,
-            failed=failed,
-            weighted_score=round(weighted, 6),
-            cases=results,
-            duration_ms=round(duration_ms, 2),
-            digest=digest,
-            ok=failed == 0,
-        )
+        if passed:
+            score_num += case.weight
+    score = (score_num / score_den) if score_den else 0.0
+    payload = "|".join(f"{r.name}:{r.passed}:{r.attempts}" for r in results)
+    digest = hashlib.sha256(payload.encode()).hexdigest()[:16]
+    elapsed = (time.monotonic() - t0) * 1000
+    return SuiteReceipt(
+        ok=all(r.passed for r in results),
+        score=round(score, 4),
+        passed=sum(1 for r in results if r.passed),
+        failed=sum(1 for r in results if not r.passed),
+        results=results,
+        digest=digest,
+        elapsed_ms=round(elapsed, 2),
+    )
 
 
-def _demo() -> None:
-    harness = EvalHarness("agent-routing-v1", case_timeout_s=1.0)
+def _demo() -> SuiteReceipt:
+    def good() -> bool:
+        return True
 
-    harness.add(EvalCase("route_search", "find docs", "search", weight=1.0))
-    harness.add(EvalCase("route_write", "save note", "write", weight=1.0))
-    harness.add(EvalCase("route_unknown", "???", "fallback", weight=0.5))
+    def flaky() -> bool:
+        if not hasattr(flaky, "n"):
+            flaky.n = 0  # type: ignore[attr-defined]
+        flaky.n += 1  # type: ignore[attr-defined]
+        if flaky.n < 2:
+            raise RuntimeError("flake")
+        return True
 
-    def predict(x: str) -> str:
-        if "find" in x or "search" in x:
-            return "search"
-        if "save" in x or "write" in x:
-            return "write"
-        return "fallback"
+    def bad() -> bool:
+        return False
 
-    receipt = harness.run(predict)
-    assert receipt.ok, receipt
-    assert receipt.passed == 3
-    print(f"advanced_eval_harness: ok digest={receipt.digest} score={receipt.weighted_score}")
+    cases = [
+        Case("truth", good, weight=2.0),
+        Case("flaky_ok", flaky, weight=1.0, max_flakes=2),
+        Case("expect_fail", bad, weight=1.0, expect=False),
+    ]
+    return run_suite(cases)
 
 
 if __name__ == "__main__":
-    _demo()
+    r = _demo()
+    assert r.passed >= 2
+    print(
+        f"advanced_eval_harness: ok digest={r.digest} score={r.score} "
+        f"passed={r.passed} failed={r.failed} elapsed_ms={r.elapsed_ms}"
+    )

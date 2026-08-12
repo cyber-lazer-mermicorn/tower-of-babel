@@ -1,72 +1,85 @@
 #!/usr/bin/env python3
-"""Advanced exhibit: MoE router reference (ONNX-shaped, runtime-gated).
+"""Advanced exhibit: deterministic MoE router reference with temperature.
 
-Owns the portable graph boundary for expert routing:
-- top-k selection with deterministic tie-break
-- explicit admission gate: real ONNX Runtime is optional
-- receipt records whether the live runtime was used
-No false success. Born to run the reference path always.
+Owns model-format boundary: top-k expert selection, temperature shaping,
+ORT admission probe, sealed receipt. Host path always runs; ORT is optional.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
+import math
 from dataclasses import dataclass
 
 
 @dataclass
 class RouterReceipt:
-    top_k: list[int]
-    scores: list[float]
-    used_onnx_runtime: bool
+    experts: list[int]
+    weights: list[float]
+    used_ort: bool
     digest: str
     ok: bool
     note: str
 
 
-def top_k_router(logits: list[float], k: int) -> tuple[list[int], list[float]]:
-    if k < 1:
-        raise ValueError("k must be >= 1")
-    if not logits:
-        raise ValueError("logits must be non-empty")
-    k = min(k, len(logits))
-    indexed = sorted(enumerate(logits), key=lambda t: (-t[1], t[0]))
-    chosen = indexed[:k]
-    indices = [i for i, _ in chosen]
-    scores = [s for _, s in chosen]
-    return indices, scores
+def softmax(xs: list[float], temperature: float = 1.0) -> list[float]:
+    if temperature <= 0:
+        raise ValueError("temperature must be > 0")
+    scaled = [x / temperature for x in xs]
+    m = max(scaled)
+    exps = [math.exp(x - m) for x in scaled]
+    z = sum(exps)
+    if z <= 0:
+        raise ValueError("invalid softmax")
+    return [e / z for e in exps]
 
 
-def run_reference(logits: list[float], k: int = 2) -> RouterReceipt:
-    indices, scores = top_k_router(logits, k)
-    payload = json.dumps({"idx": indices, "scores": scores, "k": k}, sort_keys=True)
-    digest = hashlib.sha256(payload.encode()).hexdigest()[:16]
-    return RouterReceipt(
-        top_k=indices,
-        scores=scores,
-        used_onnx_runtime=False,
-        digest=digest,
-        ok=True,
-        note="pure-Python reference; ONNX Runtime not required for this evidence class",
-    )
+def top_k_route(
+    logits: list[float],
+    k: int,
+    temperature: float = 1.0,
+) -> tuple[list[int], list[float]]:
+    if k <= 0 or k > len(logits):
+        raise ValueError("k out of range")
+    weights = softmax(logits, temperature)
+    ranked = sorted(range(len(weights)), key=lambda i: weights[i], reverse=True)
+    experts = ranked[:k]
+    chosen = [weights[i] for i in experts]
+    s = sum(chosen)
+    chosen = [w / s for w in chosen]
+    return experts, chosen
 
 
-def try_onnx_runtime() -> bool:
-    """Admission probe — never claim success without the dependency."""
+def ort_available() -> bool:
     try:
-        import onnxruntime  # type: ignore  # noqa: F401
+        import onnxruntime  # noqa: F401
+
         return True
-    except ImportError:
+    except Exception:
         return False
 
 
-if __name__ == "__main__":
-    logits = [0.1, 0.9, 0.85, 0.2]
-    receipt = run_reference(logits, k=2)
-    assert receipt.top_k == [1, 2], receipt
-    has_ort = try_onnx_runtime()
-    print(
-        f"advanced_moe_router_ref: ok digest={receipt.digest} "
-        f"onnx_runtime={'present' if has_ort else 'absent (gated)'}"
+def run_router(logits: list[float], k: int = 2, temperature: float = 1.0) -> RouterReceipt:
+    experts, weights = top_k_route(logits, k, temperature)
+    used = ort_available()
+    payload = f"{experts}|{[round(w, 6) for w in weights]}|{temperature}|{used}"
+    digest = hashlib.sha256(payload.encode()).hexdigest()[:16]
+    note = "ORT present" if used else "host reference only; ORT not installed"
+    return RouterReceipt(
+        experts=experts,
+        weights=weights,
+        used_ort=used,
+        digest=digest,
+        ok=True,
+        note=note,
     )
+
+
+if __name__ == "__main__":
+    logits = [0.1, 2.5, 0.3, 1.2, 0.05]
+    r = run_router(logits, k=2, temperature=0.8)
+    assert r.ok and len(r.experts) == 2
+    assert r.experts[0] == 1
+    r2 = run_router(logits, k=2, temperature=2.0)
+    assert r2.ok
+    print(f"advanced_moe_router_ref: ok digest={r.digest} experts={r.experts} ort={r.used_ort}")

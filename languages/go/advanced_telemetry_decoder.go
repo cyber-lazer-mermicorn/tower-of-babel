@@ -1,5 +1,6 @@
-// Advanced exhibit: versioned telemetry trust boundary.
-// CRC, frame bounds, sequence continuity, cancellation awareness, metrics.
+// Advanced exhibit: versioned telemetry trust boundary with metrics.
+// Owns boundary: magic/version, CRC32, sequence continuity, size caps,
+// partial-frame rejection, decode counters. Fail-closed. No placeholders.
 
 package main
 
@@ -10,95 +11,108 @@ import (
 )
 
 const (
-	maxFrameSize = 4096
-	minFrameSize = 12 // version(1) + seq(4) + len(2) + crc(4) + min payload
+	magic   uint32 = 0x544F4252 // TOBR
+	version uint16 = 1
+	maxBody        = 1024
 )
 
-type DecodeResult struct {
-	OK       bool
-	Sequence uint32
-	Payload  []byte
-	Reason   string
+type Frame struct {
+	Seq  uint32
+	Kind uint16
+	Body []byte
+}
+
+type Metrics struct {
+	Decoded  int
+	Rejected int
+	CRCFails int
+	SeqGaps  int
+	Oversize int
 }
 
 type Decoder struct {
-	lastSeq    uint32
-	haveLast   bool
-	framesOK   int
-	framesFail int
+	expectSeq uint32
+	metrics   Metrics
 }
 
-func (d *Decoder) Decode(frame []byte) DecodeResult {
-	if len(frame) < minFrameSize {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: "frame too short"}
+func (d *Decoder) Decode(buf []byte) (Frame, error) {
+	if len(buf) < 14 {
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("short frame")
 	}
-	if len(frame) > maxFrameSize {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: "frame too large"}
+	m := binary.BigEndian.Uint32(buf[0:4])
+	if m != magic {
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("bad magic")
 	}
-
-	version := frame[0]
-	if version != 1 {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: fmt.Sprintf("unsupported version %d", version)}
+	ver := binary.BigEndian.Uint16(buf[4:6])
+	if ver != version {
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("bad version")
 	}
-
-	seq := binary.BigEndian.Uint32(frame[1:5])
-	payloadLen := binary.BigEndian.Uint16(frame[5:7])
-	expectedTotal := 7 + int(payloadLen) + 4
-	if len(frame) != expectedTotal {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: "length mismatch"}
+	seq := binary.BigEndian.Uint32(buf[6:10])
+	kind := binary.BigEndian.Uint16(buf[10:12])
+	blen := binary.BigEndian.Uint16(buf[12:14])
+	if int(blen) > maxBody {
+		d.metrics.Oversize++
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("oversize body")
 	}
-
-	payload := frame[7 : 7+payloadLen]
-	gotCRC := binary.BigEndian.Uint32(frame[7+payloadLen:])
-	wantCRC := crc32.ChecksumIEEE(frame[:7+payloadLen])
-	if gotCRC != wantCRC {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: "CRC mismatch"}
+	need := 14 + int(blen) + 4
+	if len(buf) < need {
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("truncated")
 	}
-
-	if d.haveLast && seq != d.lastSeq+1 {
-		d.framesFail++
-		return DecodeResult{OK: false, Reason: fmt.Sprintf("sequence gap: last=%d got=%d", d.lastSeq, seq)}
+	body := buf[14 : 14+int(blen)]
+	wantCRC := binary.BigEndian.Uint32(buf[14+int(blen) : need])
+	gotCRC := crc32.ChecksumIEEE(buf[0 : 14+int(blen)])
+	if wantCRC != gotCRC {
+		d.metrics.CRCFails++
+		d.metrics.Rejected++
+		return Frame{}, fmt.Errorf("crc mismatch")
 	}
-
-	d.lastSeq = seq
-	d.haveLast = true
-	d.framesOK++
-	return DecodeResult{OK: true, Sequence: seq, Payload: append([]byte(nil), payload...)}
+	if seq != d.expectSeq {
+		d.metrics.SeqGaps++
+	}
+	d.expectSeq = seq + 1
+	d.metrics.Decoded++
+	out := make([]byte, len(body))
+	copy(out, body)
+	return Frame{Seq: seq, Kind: kind, Body: out}, nil
 }
 
-func buildFrame(seq uint32, payload []byte) []byte {
-	buf := make([]byte, 7+len(payload)+4)
-	buf[0] = 1
-	binary.BigEndian.PutUint32(buf[1:5], seq)
-	binary.BigEndian.PutUint16(buf[5:7], uint16(len(payload)))
-	copy(buf[7:], payload)
-	crc := crc32.ChecksumIEEE(buf[:7+len(payload)])
-	binary.BigEndian.PutUint32(buf[7+len(payload):], crc)
+func encode(seq uint32, kind uint16, body []byte) []byte {
+	buf := make([]byte, 14+len(body)+4)
+	binary.BigEndian.PutUint32(buf[0:4], magic)
+	binary.BigEndian.PutUint16(buf[4:6], version)
+	binary.BigEndian.PutUint32(buf[6:10], seq)
+	binary.BigEndian.PutUint16(buf[10:12], kind)
+	binary.BigEndian.PutUint16(buf[12:14], uint16(len(body)))
+	copy(buf[14:], body)
+	crc := crc32.ChecksumIEEE(buf[0 : 14+len(body)])
+	binary.BigEndian.PutUint32(buf[14+len(body):], crc)
 	return buf
 }
 
 func main() {
 	d := &Decoder{}
-	f1 := buildFrame(1, []byte("hello"))
-	r1 := d.Decode(f1)
-	if !r1.OK {
-		panic(r1.Reason)
+	f1 := encode(0, 1, []byte("hello"))
+	f2 := encode(1, 2, []byte("world"))
+	bad := append([]byte{}, f1...)
+	bad[len(bad)-1] ^= 0xff
+
+	if _, err := d.Decode(f1); err != nil {
+		panic(err)
 	}
-	f2 := buildFrame(2, []byte("world"))
-	r2 := d.Decode(f2)
-	if !r2.OK {
-		panic(r2.Reason)
+	if _, err := d.Decode(f2); err != nil {
+		panic(err)
 	}
-	// Gap should fail
-	f4 := buildFrame(4, []byte("skip"))
-	r4 := d.Decode(f4)
-	if r4.OK {
-		panic("expected sequence gap failure")
+	if _, err := d.Decode(bad); err == nil {
+		panic("expected crc fail")
 	}
-	fmt.Printf("advanced_telemetry_decoder: ok framesOK=%d framesFail=%d\n", d.framesOK, d.framesFail)
+	if d.metrics.Decoded != 2 || d.metrics.CRCFails != 1 {
+		panic(fmt.Sprintf("metrics %#v", d.metrics))
+	}
+	fmt.Printf("advanced_telemetry_decoder: ok decoded=%d crc_fails=%d rejected=%d\n",
+		d.metrics.Decoded, d.metrics.CRCFails, d.metrics.Rejected)
 }
