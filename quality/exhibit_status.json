@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "notes": "Expanded high-signal stack: C++, Java, Triton reference, Julia (toolchain_gated). Unique boundaries only.",
+  "version": "1.3.0",
+  "notes": "High-intelligence expansion: Haskell, Zig, Mojo, Elixir. Unique boundaries; toolchain_gated where compilers absent.",
   "floors": {
     "python": {"evidence": "tested", "advanced_boundary": "drainable priority agent runtime"},
     "typescript": {"evidence": "tested", "advanced_boundary": "governed MCP/JSON-RPC gateway"},
@@ -12,6 +12,10 @@
     "java": {"evidence": "tested", "advanced_boundary": "bounded work queue with abort policy"},
     "triton": {"evidence": "tested", "advanced_boundary": "fused attention host oracle (accelerator gated)"},
     "julia": {"evidence": "toolchain_gated", "advanced_boundary": "energy-audited velocity-Verlet orbit"},
+    "haskell": {"evidence": "toolchain_gated", "advanced_boundary": "pure capability-policy AST validation"},
+    "zig": {"evidence": "toolchain_gated", "advanced_boundary": "mission-scoped arena with allocation budget"},
+    "mojo": {"evidence": "toolchain_gated", "advanced_boundary": "SIMD affine-clamp tensor kernel sketch"},
+    "elixir": {"evidence": "toolchain_gated", "advanced_boundary": "supervised idempotent mission worker"},
     "sql": {"evidence": "service_gated", "advanced_boundary": "tenant-isolated vector patterns"},
     "wat": {"evidence": "tested", "advanced_boundary": "capability/fuel sandbox sketch"},
     "protobuf": {"evidence": "tested", "advanced_boundary": "mission + receipt contract"},

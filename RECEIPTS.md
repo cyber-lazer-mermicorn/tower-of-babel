@@ -1,16 +1,11 @@
-# Local verification receipts (v1.2)
+# Local verification receipts (v1.3)
 
 | Surface | Result |
 |---------|--------|
-| Python / Eval / ONNX / Triton refs | ok |
-| C++ score cache | ok |
-| Java bounded work queue | ok |
-| TypeScript MCP gateway | ok |
-| Rust safety governor | ok |
-| Go telemetry decoder | ok |
+| Prior tested floors (Python, TS, Rust, Go, C++, Java, Eval, ONNX, Triton, …) | ok |
 | Flagship pipeline | ok |
-| Julia | toolchain_gated (exact blocker) |
-| `tower validate` | ok (14 floors) |
+| Haskell / Zig / Mojo / Elixir | toolchain_gated (exact blocker — exhibits present) |
+| `tower validate` | ok (18 floors) |
 | `tower build --all --allow-blocked` | ok |
 
-Re-run locally or via CI to reproduce.
+Gated floors ship complete exhibits and claim only what the environment can prove.
