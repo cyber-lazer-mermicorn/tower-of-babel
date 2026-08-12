@@ -1,5 +1,5 @@
 # Canonical Tower authority — do not hand-edit generated surfaces
-version: "1.0.0"
+version: "1.1.0"
 name: tower-of-babel
 purpose: AI systems engineering Rosetta Stone for remote AI development roles
 
@@ -59,6 +59,34 @@ floors:
     easy: languages/go/easy_ping.go
     advanced: languages/go/advanced_telemetry_decoder.go
     interfaces: [telemetry_event, decode_receipt]
+
+  - id: eval
+    name: Evaluation Harness
+    class: framework
+    what: Bounded, isolated scoring of agent and model outputs with promotion receipts
+    where: Agent routing tests, model regression suites, capability gates before deployment
+    when: You need reproducible pass/fail evidence rather than anecdotal demos
+    why: Evaluation is the difference between a demo and a system you can trust under change
+    how: Typed cases, per-case timeout isolation, weighted metrics, content digest
+    evidence: tested
+    proof_class: behavioral
+    easy: languages/eval/easy_score.py
+    advanced: languages/eval/advanced_eval_harness.py
+    interfaces: [eval_case, eval_receipt]
+
+  - id: onnx
+    name: ONNX (reference router)
+    class: model_format
+    what: Portable typed computation graph independent of the training framework
+    where: Model exchange, runtime deployment, graph inspection, expert routing sketches
+    when: A model or router must move between frameworks or backends
+    why: Separates learned/routing semantics from any one training library
+    how: Deterministic top-k reference with explicit ONNX Runtime admission probe
+    evidence: tested
+    proof_class: behavioral
+    easy: languages/onnx/easy_linear_model.py
+    advanced: languages/onnx/advanced_moe_router_ref.py
+    interfaces: [router_logits, router_receipt]
 
   - id: sql
     name: SQL / pgvector
