@@ -7,14 +7,14 @@
 [![Evidence](https://img.shields.io/badge/evidence-gates-green)](quality/exhibit_status.json)
 [![CI](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml/badge.svg)](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml)
 
-Governed technology map for modern AI systems work: dual exhibits, evidence gates, recruiter-readable proof.
+Governed technology map: dual exhibits, evidence gates, recruiter-readable proof.
 
 **Primary audience**: hiring managers for remote AI / agent / platform roles.  
 **Complementary systems map**: [GlacierEQ/the-tower-of-babel](https://github.com/GlacierEQ/the-tower-of-babel).
 
 ---
 
-## High-signal stack (v1.3 — 18 floors)
+## High-signal stack (v1.4 — 20 floors)
 
 | # | Technology | Core boundary | Evidence |
 |---|------------|---------------|----------|
@@ -32,12 +32,14 @@ Governed technology map for modern AI systems work: dual exhibits, evidence gate
 | 12 | **Zig** | Arena allocator budget | `toolchain_gated` |
 | 13 | **Mojo** | SIMD tensor kernel sketch | `toolchain_gated` |
 | 14 | **Elixir** | Supervised mission worker | `toolchain_gated` |
-| 15 | **SQL + vectors** | Canonical + HNSW patterns | `service_gated` |
-| 16 | **WebAssembly** | Capability sandbox | `tested` |
-| 17 | **Protocol Buffers** | Mission + receipt | `tested` |
-| 18 | **Lean 4** | Authority invariants | `formally_verified` |
+| 15 | **MLIR** | Attention pipeline IR lowering | `toolchain_gated` |
+| 16 | **Coq** | Constructive receipt-chain proofs | `toolchain_gated` |
+| 17 | **SQL + vectors** | Canonical + HNSW patterns | `service_gated` |
+| 18 | **WebAssembly** | Capability sandbox | `tested` |
+| 19 | **Protocol Buffers** | Mission + receipt | `tested` |
+| 20 | **Lean 4** | Authority invariants | `formally_verified` |
 
-Highest-intelligence additions in v1.3: **Haskell** (type/purity), **Zig** (explicit systems), **Mojo** (AI systems language), **Elixir** (fault-tolerant agents).
+**Compiler intelligence**: MLIR. **Formal pair**: Lean 4 + Coq.
 
 ---
 
@@ -51,7 +53,7 @@ python -m tower build --all --allow-blocked
 python flagship/run_pipeline.py
 ```
 
-See [`RECEIPTS.md`](RECEIPTS.md) and [`docs/JOB_APPLICATION_SURFACE.md`](docs/JOB_APPLICATION_SURFACE.md).
+See [`RECEIPTS.md`](RECEIPTS.md) · [`docs/JOB_APPLICATION_SURFACE.md`](docs/JOB_APPLICATION_SURFACE.md) · [`QUALITY_CONTRACT.md`](QUALITY_CONTRACT.md)
 
 ---
 
@@ -59,4 +61,4 @@ See [`RECEIPTS.md`](RECEIPTS.md) and [`docs/JOB_APPLICATION_SURFACE.md`](docs/JO
 
 Proprietary. All rights reserved. Collaboration by explicit discussion.
 
-**Operational-alpha (v1.3).** Eighteen floors. Expand only with unique boundary + evidence.
+**Operational-alpha (v1.4).** Twenty floors. Expand only with unique boundary + evidence.

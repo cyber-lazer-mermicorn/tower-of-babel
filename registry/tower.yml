@@ -1,4 +1,4 @@
-version: "1.3.0"
+version: "1.4.0"
 name: tower-of-babel
 purpose: AI systems engineering Rosetta Stone for remote AI development roles
 
@@ -198,6 +198,34 @@ floors:
     easy: languages/elixir/easy_actor.ex
     advanced: languages/elixir/advanced_fault_tolerant_beam.ex
     interfaces: [mission_worker, supervision_receipt]
+
+  - id: mlir
+    name: MLIR
+    class: intermediate_representation
+    what: Extensible intermediate representations and dialects across abstraction levels
+    where: Compiler pipelines, tensor lowering, accelerator backends, DSLs, hardware-specific optimization
+    when: One operation must be progressively transformed from domain semantics to machine code
+    why: Makes compiler passes and hardware dialect boundaries explicit and reusable
+    how: Destination-style attention score lowering sketch as SSA tensor contract
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/mlir/easy_add.mlir
+    advanced: languages/mlir/advanced_attention_pipeline.mlir
+    interfaces: [attention_ir, lowering_contract]
+
+  - id: coq
+    name: Coq
+    class: proof_language
+    what: Programs and machine-checked proofs in the Calculus of Inductive Constructions
+    where: Verified compilers, protocols, cryptography, semantics, critical algorithms
+    when: Constructive proofs, extraction, or mature proof libraries fit the assurance case
+    why: Checks every proof term with a small trusted kernel and can extract verified programs
+    how: Linked receipt-chain ordering with constructive ordered-list invariants
+    evidence: toolchain_gated
+    proof_class: formal
+    easy: languages/coq/easy_logic.v
+    advanced: languages/coq/advanced_receipt_chain.v
+    interfaces: [receipt_chain, ordered_invariant]
 
   - id: sql
     name: SQL / pgvector

@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "floors": [
     {"id": "python", "name": "Python", "evidence": "tested", "proof_class": "behavioral", "easy": "languages/python/easy_fibonacci.py", "advanced": "languages/python/advanced_async_orchestrator.py"},
     {"id": "typescript", "name": "TypeScript", "evidence": "tested", "proof_class": "behavioral", "easy": "languages/typescript/easy_greet.ts", "advanced": "languages/typescript/advanced_mcp_gateway.ts"},
@@ -15,6 +15,8 @@
     {"id": "zig", "name": "Zig", "evidence": "toolchain_gated", "proof_class": "compile", "easy": "languages/zig/easy_hello.zig", "advanced": "languages/zig/advanced_arena_allocator.zig"},
     {"id": "mojo", "name": "Mojo", "evidence": "toolchain_gated", "proof_class": "compile", "easy": "languages/mojo/easy_simd.mojo", "advanced": "languages/mojo/advanced_simd_tensor_kernel.mojo"},
     {"id": "elixir", "name": "Elixir", "evidence": "toolchain_gated", "proof_class": "compile", "easy": "languages/elixir/easy_actor.ex", "advanced": "languages/elixir/advanced_fault_tolerant_beam.ex"},
+    {"id": "mlir", "name": "MLIR", "evidence": "toolchain_gated", "proof_class": "compile", "easy": "languages/mlir/easy_add.mlir", "advanced": "languages/mlir/advanced_attention_pipeline.mlir"},
+    {"id": "coq", "name": "Coq", "evidence": "toolchain_gated", "proof_class": "formal", "easy": "languages/coq/easy_logic.v", "advanced": "languages/coq/advanced_receipt_chain.v"},
     {"id": "sql", "name": "SQL / pgvector", "evidence": "service_gated", "proof_class": "integration", "easy": "languages/sql/easy_table.sql", "advanced": "languages/sql/advanced_pgvector_hnsw.sql"},
     {"id": "wat", "name": "WebAssembly", "evidence": "tested", "proof_class": "behavioral", "easy": "languages/wat/easy_add.wat", "advanced": "languages/wat/advanced_wasm_sandbox.wat"},
     {"id": "protobuf", "name": "Protocol Buffers", "evidence": "tested", "proof_class": "behavioral", "easy": "languages/protobuf/easy_user.proto", "advanced": "languages/protobuf/advanced_mission_receipt.proto"},

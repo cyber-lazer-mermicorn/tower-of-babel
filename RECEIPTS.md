@@ -1,11 +1,12 @@
-# Local verification receipts (v1.3)
+# Local verification receipts (v1.4)
 
 | Surface | Result |
 |---------|--------|
-| Prior tested floors (Python, TS, Rust, Go, C++, Java, Eval, ONNX, Triton, …) | ok |
+| Tested floors (Python, TS, Rust, Go, C++, Java, Eval, ONNX, Triton, WASM, …) | ok |
+| Hardened easy exhibits (Python/Go/Rust) | ok |
 | Flagship pipeline | ok |
-| Haskell / Zig / Mojo / Elixir | toolchain_gated (exact blocker — exhibits present) |
-| `tower validate` | ok (18 floors) |
+| MLIR / Coq / Haskell / Zig / Mojo / Elixir / Julia | toolchain_gated (exhibits present, exact blockers) |
+| `tower validate` | ok (20 floors) |
 | `tower build --all --allow-blocked` | ok |
 
-Gated floors ship complete exhibits and claim only what the environment can prove.
+Formal pair: Lean 4 + Coq. Compiler IR: MLIR attention pipeline sketch.

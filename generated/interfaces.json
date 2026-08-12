@@ -14,6 +14,8 @@
     {"id": "zig", "interfaces": ["arena", "budget_receipt"]},
     {"id": "mojo", "interfaces": ["tensor_kernel"]},
     {"id": "elixir", "interfaces": ["mission_worker", "supervision_receipt"]},
+    {"id": "mlir", "interfaces": ["attention_ir", "lowering_contract"]},
+    {"id": "coq", "interfaces": ["receipt_chain", "ordered_invariant"]},
     {"id": "sql", "interfaces": ["canonical_state", "vector_query"]},
     {"id": "wat", "interfaces": ["sandbox_result", "capability_receipt"]},
     {"id": "protobuf", "interfaces": ["mission", "receipt"]},
