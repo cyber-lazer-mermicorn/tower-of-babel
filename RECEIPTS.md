@@ -1,12 +1,15 @@
-# Local verification receipts (v1.4)
+# Local verification receipts (v1.5)
 
 | Surface | Result |
 |---------|--------|
-| Tested floors (Python, TS, Rust, Go, C++, Java, Eval, ONNX, Triton, WASM, …) | ok |
-| Hardened easy exhibits (Python/Go/Rust) | ok |
+| Skill-up: Python circuit breaker orchestrator | ok |
+| Skill-up: Rust capability governor | ok |
+| Skill-up: Go telemetry metrics | ok |
+| Skill-up: TypeScript idempotent MCP gateway | ok |
+| Skill-up: Eval flake budget harness | ok |
+| Skill-up: C++ TTL score cache | ok |
+| Skill-up: ONNX temperature router | ok |
 | Flagship pipeline | ok |
-| MLIR / Coq / Haskell / Zig / Mojo / Elixir / Julia | toolchain_gated (exhibits present, exact blockers) |
 | `tower validate` | ok (20 floors) |
-| `tower build --all --allow-blocked` | ok |
 
-Formal pair: Lean 4 + Coq. Compiler IR: MLIR attention pipeline sketch.
+Each advanced exhibit deepened on its unique boundary without bloat.

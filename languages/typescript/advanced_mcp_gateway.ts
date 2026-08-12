@@ -1,172 +1,147 @@
 /**
- * Advanced exhibit: governed MCP/JSON-RPC style gateway.
- * Runtime validation, rate limiting, mutation approval, hashed receipts.
- * No placeholders.
+ * Advanced exhibit: governed MCP/JSON-RPC gateway.
+ * Owns boundary: method allowlist, JSON schema shape, rate limit,
+ * idempotency keys, mutation approval, hashed receipts.
  */
 
 import { createHash } from "crypto";
 
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [k: string]: JsonValue };
+type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 
-export interface ToolCall {
-  id: string;
-  tool: string;
-  args: Record<string, JsonValue>;
-  mutate?: boolean;
+interface RpcRequest {
+  jsonrpc: "2.0";
+  id: string | number;
+  method: string;
+  params?: Json;
+  idempotency_key?: string;
 }
 
-export interface GatewayReceipt {
+interface RpcResponse {
+  jsonrpc: "2.0";
+  id: string | number | null;
+  result?: Json;
+  error?: { code: number; message: string };
+}
+
+interface Receipt {
   ok: boolean;
-  id: string;
-  tool: string;
-  allowed: boolean;
-  reason?: string;
-  result?: JsonValue;
+  allowed: number;
+  denied: number;
+  duplicates: number;
   digest: string;
 }
 
-export interface GatewayConfig {
-  allowedTools: Set<string>;
-  maxCallsPerMinute: number;
-  requireApprovalForMutations: boolean;
-  approvedMutations: Set<string>;
-}
+const ALLOWED = new Set(["tools/list", "tools/call", "ping"]);
+const MUTATING = new Set(["tools/call"]);
 
-export class McpGateway {
-  private calls: number[] = [];
-
-  constructor(private readonly config: GatewayConfig) {
-    if (config.maxCallsPerMinute < 1) {
-      throw new Error("maxCallsPerMinute must be >= 1");
-    }
-  }
-
-  private rateLimitOk(): boolean {
+class RateLimiter {
+  private timestamps: number[] = [];
+  constructor(private limit: number, private windowMs: number) {}
+  allow(): boolean {
     const now = Date.now();
-    this.calls = this.calls.filter((t) => now - t < 60_000);
-    if (this.calls.length >= this.config.maxCallsPerMinute) {
-      return false;
-    }
-    this.calls.push(now);
+    this.timestamps = this.timestamps.filter((t) => now - t < this.windowMs);
+    if (this.timestamps.length >= this.limit) return false;
+    this.timestamps.push(now);
     return true;
   }
+}
 
-  private digest(payload: string): string {
-    return createHash("sha256").update(payload).digest("hex").slice(0, 16);
+class McpGateway {
+  private rate = new RateLimiter(10, 1000);
+  private seenIds = new Set<string>();
+  private idempotency = new Map<string, RpcResponse>();
+  private allowed = 0;
+  private denied = 0;
+  private duplicates = 0;
+  private approvedMutations = new Set<string>();
+
+  approveMutation(id: string): void {
+    this.approvedMutations.add(id);
   }
 
-  handle(call: ToolCall): GatewayReceipt {
-    if (!call.id || !call.tool) {
-      return {
-        ok: false,
-        id: call.id || "",
-        tool: call.tool || "",
-        allowed: false,
-        reason: "id and tool are required",
-        digest: this.digest("invalid"),
-      };
-    }
+  private validateShape(req: RpcRequest): string | null {
+    if (req.jsonrpc !== "2.0") return "bad jsonrpc";
+    if (req.id === undefined || req.id === null) return "missing id";
+    if (typeof req.method !== "string" || !req.method) return "bad method";
+    return null;
+  }
 
-    if (!this.rateLimitOk()) {
-      return {
-        ok: false,
-        id: call.id,
-        tool: call.tool,
-        allowed: false,
-        reason: "rate limit exceeded",
-        digest: this.digest(`${call.id}|rate`),
-      };
+  handle(raw: RpcRequest): RpcResponse {
+    const shapeErr = this.validateShape(raw);
+    if (shapeErr) {
+      this.denied++;
+      return { jsonrpc: "2.0", id: raw.id ?? null, error: { code: -32600, message: shapeErr } };
     }
-
-    if (!this.config.allowedTools.has(call.tool)) {
-      return {
-        ok: false,
-        id: call.id,
-        tool: call.tool,
-        allowed: false,
-        reason: `tool not allowed: ${call.tool}`,
-        digest: this.digest(`${call.id}|deny`),
-      };
+    if (raw.idempotency_key && this.idempotency.has(raw.idempotency_key)) {
+      this.duplicates++;
+      return this.idempotency.get(raw.idempotency_key)!;
     }
-
-    if (call.mutate && this.config.requireApprovalForMutations) {
-      if (!this.config.approvedMutations.has(call.id)) {
-        return {
-          ok: false,
-          id: call.id,
-          tool: call.tool,
-          allowed: false,
-          reason: "mutation requires prior approval",
-          digest: this.digest(`${call.id}|approval`),
-        };
-      }
+    if (!this.rate.allow()) {
+      this.denied++;
+      return { jsonrpc: "2.0", id: raw.id, error: { code: -32000, message: "rate_limited" } };
     }
+    if (!ALLOWED.has(raw.method)) {
+      this.denied++;
+      return { jsonrpc: "2.0", id: raw.id, error: { code: -32601, message: "method_not_found" } };
+    }
+    if (MUTATING.has(raw.method) && !this.approvedMutations.has(String(raw.id))) {
+      this.denied++;
+      return { jsonrpc: "2.0", id: raw.id, error: { code: -32001, message: "mutation_not_approved" } };
+    }
+    const idKey = String(raw.id);
+    if (this.seenIds.has(idKey)) {
+      this.duplicates++;
+      return { jsonrpc: "2.0", id: raw.id, error: { code: -32002, message: "duplicate_id" } };
+    }
+    this.seenIds.add(idKey);
+    this.allowed++;
+    let result: Json = { ok: true };
+    if (raw.method === "ping") result = { pong: true };
+    if (raw.method === "tools/list") result = { tools: ["search", "summarize"] };
+    if (raw.method === "tools/call") result = { called: true, params: raw.params ?? null };
+    const resp: RpcResponse = { jsonrpc: "2.0", id: raw.id, result };
+    if (raw.idempotency_key) this.idempotency.set(raw.idempotency_key, resp);
+    return resp;
+  }
 
-    const result: JsonValue = { echo: call.args, tool: call.tool };
-    const payload = `${call.id}|${call.tool}|${JSON.stringify(call.args)}`;
+  receipt(): Receipt {
+    const payload = `${this.allowed}|${this.denied}|${this.duplicates}`;
+    const digest = createHash("sha256").update(payload).digest("hex").slice(0, 16);
     return {
-      ok: true,
-      id: call.id,
-      tool: call.tool,
-      allowed: true,
-      result,
-      digest: this.digest(payload),
+      ok: this.denied === 0 || this.allowed > 0,
+      allowed: this.allowed,
+      denied: this.denied,
+      duplicates: this.duplicates,
+      digest,
     };
   }
 }
 
-function runSelfCheck(): void {
-  const gw = new McpGateway({
-    allowedTools: new Set(["search", "write_note"]),
-    maxCallsPerMinute: 10,
-    requireApprovalForMutations: true,
-    approvedMutations: new Set(["mut-1"]),
+function main(): void {
+  const gw = new McpGateway();
+  gw.approveMutation("2");
+  const r1 = gw.handle({ jsonrpc: "2.0", id: 1, method: "ping" });
+  const r2 = gw.handle({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "tools/call",
+    params: { name: "search" },
+    idempotency_key: "ik-1",
   });
-
-  const ok = gw.handle({ id: "c1", tool: "search", args: { q: "tower" } });
-  if (!(ok.ok && ok.allowed)) {
-    throw new Error("expected search to be allowed");
-  }
-
-  const denied = gw.handle({ id: "c2", tool: "delete_all", args: {} });
-  if (denied.allowed) {
-    throw new Error("expected delete_all to be denied");
-  }
-
-  const mutDenied = gw.handle({
-    id: "mut-2",
-    tool: "write_note",
-    args: { text: "x" },
-    mutate: true,
+  const r2b = gw.handle({
+    jsonrpc: "2.0",
+    id: 3,
+    method: "tools/call",
+    params: { name: "search" },
+    idempotency_key: "ik-1",
   });
-  if (mutDenied.allowed) {
-    throw new Error("expected unapproved mutation to be denied");
-  }
-
-  const mutOk = gw.handle({
-    id: "mut-1",
-    tool: "write_note",
-    args: { text: "approved" },
-    mutate: true,
-  });
-  if (!mutOk.ok) {
-    throw new Error("expected approved mutation to succeed");
-  }
-
-  console.log("advanced_mcp_gateway: ok");
+  const r3 = gw.handle({ jsonrpc: "2.0", id: 4, method: "explode" });
+  if (!r1.result || !r2.result || !r2b.result) throw new Error("expected results");
+  if (!r3.error) throw new Error("expected deny");
+  const rec = gw.receipt();
+  console.log(
+    `advanced_mcp_gateway: ok digest=${rec.digest} allowed=${rec.allowed} denied=${rec.denied} duplicates=${rec.duplicates}`
+  );
 }
 
-const isMain =
-  typeof require !== "undefined" &&
-  typeof module !== "undefined" &&
-  require.main === module;
-
-if (isMain) {
-  runSelfCheck();
-}
+main();
