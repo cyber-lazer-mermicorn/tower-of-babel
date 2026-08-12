@@ -1,44 +1,18 @@
 {
   "floors": [
-    {
-      "id": "python",
-      "interfaces": ["mission_plan", "evaluation_score", "receipt"]
-    },
-    {
-      "id": "typescript",
-      "interfaces": ["ingress_request", "mcp_tool_call", "receipt"]
-    },
-    {
-      "id": "rust",
-      "interfaces": ["authority_decision", "safety_receipt"]
-    },
-    {
-      "id": "go",
-      "interfaces": ["telemetry_event", "decode_receipt"]
-    },
-    {
-      "id": "eval",
-      "interfaces": ["eval_case", "eval_receipt"]
-    },
-    {
-      "id": "onnx",
-      "interfaces": ["router_logits", "router_receipt"]
-    },
-    {
-      "id": "sql",
-      "interfaces": ["canonical_state", "vector_query"]
-    },
-    {
-      "id": "wat",
-      "interfaces": ["sandbox_result", "capability_receipt"]
-    },
-    {
-      "id": "protobuf",
-      "interfaces": ["mission", "receipt"]
-    },
-    {
-      "id": "lean4",
-      "interfaces": ["invariant_proof"]
-    }
+    {"id": "python", "interfaces": ["mission_plan", "evaluation_score", "receipt"]},
+    {"id": "typescript", "interfaces": ["ingress_request", "mcp_tool_call", "receipt"]},
+    {"id": "rust", "interfaces": ["authority_decision", "safety_receipt"]},
+    {"id": "go", "interfaces": ["telemetry_event", "decode_receipt"]},
+    {"id": "eval", "interfaces": ["eval_case", "eval_receipt"]},
+    {"id": "onnx", "interfaces": ["router_logits", "router_receipt"]},
+    {"id": "cpp", "interfaces": ["score_cache", "eviction_receipt"]},
+    {"id": "java", "interfaces": ["work_queue", "execution_receipt"]},
+    {"id": "triton", "interfaces": ["attention_receipt"]},
+    {"id": "julia", "interfaces": ["orbital_state", "energy_drift"]},
+    {"id": "sql", "interfaces": ["canonical_state", "vector_query"]},
+    {"id": "wat", "interfaces": ["sandbox_result", "capability_receipt"]},
+    {"id": "protobuf", "interfaces": ["mission", "receipt"]},
+    {"id": "lean4", "interfaces": ["invariant_proof"]}
   ]
 }

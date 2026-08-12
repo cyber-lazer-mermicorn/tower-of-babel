@@ -8,9 +8,9 @@
 [![CI](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml/badge.svg)](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml)
 
 This repository is a **governed technology map** for modern AI systems work.  
-It does not collect languages for decoration. It places technologies by measurable boundary advantage, supplies dual exhibits (easy + advanced), declares evidence state, and produces recruiter-readable proof.
+It places technologies by measurable boundary advantage, supplies dual exhibits (easy + advanced), declares evidence state, and produces recruiter-readable proof.
 
-**Primary audience**: hiring managers and technical interviewers evaluating candidates for remote AI / ML / agent / systems roles.
+**Primary audience**: hiring managers and technical interviewers for remote AI / ML / agent / systems roles.
 
 **Secondary audience**: operators and agents that need an honest, machine-readable technology contract.
 
@@ -24,17 +24,17 @@ A related, broader multi-language systems engineering Rosetta Stone lives at
 
 | Surface | Focus |
 |---------|--------|
-| **This Tower** | High-signal stack for remote AI / agent / platform roles; evaluation, safety governors, MCP contracts, receipts |
-| **GlacierEQ Tower** | Wide systems map (40 floors), formal methods depth, hardware/GPU/HDL coverage, federation-scale governance |
+| **This Tower** | High-signal stack for remote AI / agent / platform roles |
+| **GlacierEQ Tower** | Wide systems map (40 floors), formal methods, hardware/GPU/HDL |
 
-They are complementary, not competitive. Use this repo when the hiring context is AI systems work; use the broader Tower when the conversation is full-stack systems engineering.
+They are complementary, not competitive.
 
 ---
 
 ## Why this exists
 
 Most polyglot repos are resume theater.  
-This Tower is designed so a recruiter or interviewer can answer in under two minutes:
+This Tower is designed so a recruiter can answer in under two minutes:
 
 1. What can this person actually build?
 2. How do they choose tools under constraints?
@@ -45,136 +45,89 @@ Every floor answers **What / Where / When / Why / How** and carries an evidence 
 
 ---
 
-## The high-signal stack (v1.1 floors)
+## The high-signal stack (v1.2 — 14 floors)
 
-Focused set optimized for 2026 AI remote roles. Expand only when a new floor earns a unique boundary.
+Each floor owns a non-duplicated boundary. Expand only with unique value + evidence.
 
-| # | Technology | Class | Core boundary | Evidence | Easy | Advanced |
-|---|------------|-------|---------------|----------|------|----------|
-| 1 | **Python** | orchestration + AI | Agents, evaluation, control planes, rapid composition | `tested` | [easy](languages/python/easy_fibonacci.py) | [advanced_async_orchestrator.py](languages/python/advanced_async_orchestrator.py) |
-| 2 | **TypeScript** | typed interfaces | MCP/JSON-RPC gateways, browser + Node agents, contracts | `tested` | [easy](languages/typescript/easy_greet.ts) | [advanced_mcp_gateway.ts](languages/typescript/advanced_mcp_gateway.ts) |
-| 3 | **Rust** | safety + systems | Authority governors, memory-safe side-effect control | `tested` | [easy](languages/rust/easy_counter.rs) | [advanced_safety_governor.rs](languages/rust/advanced_safety_governor.rs) |
-| 4 | **Go** | concurrent services | Telemetry, gateways, simple deployable workers | `tested` | [easy](languages/go/easy_ping.go) | [advanced_telemetry_decoder.go](languages/go/advanced_telemetry_decoder.go) |
-| 5 | **Evaluation Harness** | framework | Isolated case scoring, weighted metrics, promotion receipts | `tested` | [easy](languages/eval/easy_score.py) | [advanced_eval_harness.py](languages/eval/advanced_eval_harness.py) |
-| 6 | **ONNX (reference)** | model_format | Portable router/graph boundary with runtime admission probe | `tested` | [easy](languages/onnx/easy_linear_model.py) | [advanced_moe_router_ref.py](languages/onnx/advanced_moe_router_ref.py) |
-| 7 | **SQL + vectors** | durable state | Canonical store, embeddings, constraints, RLS patterns | `service_gated` | [easy](languages/sql/easy_table.sql) | [advanced_pgvector_hnsw.sql](languages/sql/advanced_pgvector_hnsw.sql) |
-| 8 | **WebAssembly** | sandbox | Capability-bounded tool execution | `tested` | [easy](languages/wat/easy_add.wat) | [advanced_wasm_sandbox.wat](languages/wat/advanced_wasm_sandbox.wat) |
-| 9 | **Protocol Buffers** | contracts | Cross-language mission envelopes + receipts | `tested` | [easy](languages/protobuf/easy_user.proto) | [advanced_mission_receipt.proto](languages/protobuf/advanced_mission_receipt.proto) |
-| 10 | **Lean 4** | formal | Receipt-chain / authority invariants (when required) | `formally_verified` | [easy](languages/lean4/easy_logic.lean) | [advanced_truth_gate.lean](languages/lean4/advanced_truth_gate.lean) |
+| # | Technology | Core boundary | Evidence | Advanced exhibit |
+|---|------------|---------------|----------|------------------|
+| 1 | **Python** | Agents, evaluation, control planes | `tested` | [async orchestrator](languages/python/advanced_async_orchestrator.py) |
+| 2 | **TypeScript** | MCP/JSON-RPC gateways, contracts | `tested` | [MCP gateway](languages/typescript/advanced_mcp_gateway.ts) |
+| 3 | **Rust** | Authority governors, fail-closed policy | `tested` | [safety governor](languages/rust/advanced_safety_governor.rs) |
+| 4 | **Go** | Telemetry trust boundary | `tested` | [telemetry decoder](languages/go/advanced_telemetry_decoder.go) |
+| 5 | **C++** | Bounded score cache, utility eviction | `tested` | [KV score cache](languages/cpp/advanced_kv_score_cache.cpp) |
+| 6 | **Java** | Bounded work queue, abort policy | `tested` | [work queue](languages/java/advanced_bounded_work_queue.java) |
+| 7 | **Evaluation Harness** | Isolated scoring + promotion digests | `tested` | [eval harness](languages/eval/advanced_eval_harness.py) |
+| 8 | **ONNX (reference)** | Portable router + ORT probe | `tested` | [MoE router](languages/onnx/advanced_moe_router_ref.py) |
+| 9 | **Triton (reference)** | Fused attention oracle (GPU gated) | `tested` | [fused attention](languages/triton/advanced_fused_attention_ref.py) |
+| 10 | **Julia** | Energy-audited orbital integration | `toolchain_gated` | [Verlet orbit](languages/julia/advanced_orbital_verlet.jl) |
+| 11 | **SQL + vectors** | Canonical store, HNSW patterns | `service_gated` | [pgvector patterns](languages/sql/advanced_pgvector_hnsw.sql) |
+| 12 | **WebAssembly** | Capability-bounded tools | `tested` | [WASM sandbox](languages/wat/advanced_wasm_sandbox.wat) |
+| 13 | **Protocol Buffers** | Mission + receipt envelopes | `tested` | [mission receipt](languages/protobuf/advanced_mission_receipt.proto) |
+| 14 | **Lean 4** | Authority / receipt invariants | `formally_verified` | [truth gate](languages/lean4/advanced_truth_gate.lean) |
 
 ---
 
 ## Flagship polyglot AI mission
 
-A single end-to-end path that hiring managers can run or inspect:
-
 ```text
-TypeScript ingress (typed request)
-    → Protocol Buffers mission contract
-Python planner + evaluation harness
-    → capability plan + scores
-Rust safety governor
-    → allow / block decision
-Go telemetry emitter
-    → structured events
-SQL canonical state
-    → durable mission + receipt
-WebAssembly sandbox
-    → constrained tool boundary
-Lean 4 (optional)
-    → receipt invariant
-Tower receipt
+TypeScript ingress → Proto mission → Python plan + eval
+  → Rust governor → Go telemetry → receipt
 ```
-
-See `flagship/` and run:
 
 ```bash
 python flagship/run_pipeline.py
 ```
 
-Local verification summary: [`RECEIPTS.md`](RECEIPTS.md).
+Local verification: [`RECEIPTS.md`](RECEIPTS.md).
 
 ---
 
 ## Quick start
 
 ```bash
-# Install
 python -m pip install -e ".[dev]"
-
-# Validate registry + exhibits
 python -m tower validate
-
-# Generate derived surfaces
 python -m tower generate --check
-
-# Run portable builds (blocked floors report exact reasons)
 python -m tower build --all --allow-blocked
-
-# Flagship pipeline
 python flagship/run_pipeline.py
 ```
 
 ---
 
-## Evidence classes (truthful language only)
+## Evidence classes
 
 | State | Meaning |
 |-------|---------|
-| `illustrative` | Teaches concept. No runtime claim. |
-| `compiles` | Pinned toolchain accepts the exhibit. |
-| `tested` | Automated behavioral checks pass. |
-| `benchmark` | Reproducible performance number exists. |
-| `hardware_gated` / `toolchain_gated` / `service_gated` | Present but blocked by declared dependency. |
-| `formally_verified` | Proof kernel accepts the claim. |
-| `integrated` | Participates in the flagship pipeline. |
-| `production_reference` | Operational failure handling + observability evidence. |
+| `tested` | Automated behavioral checks pass |
+| `toolchain_gated` / `service_gated` / `hardware_gated` | Present; exact blocker declared |
+| `formally_verified` | Proof kernel accepts the claim |
 
-Never promote a floor without matching evidence.
-
----
-
-## Architecture contract
-
-- `registry/tower.yml` is the sole authored authority.
-- Generated files (`generated/`, README matrix sections) are never hand-edited.
-- Advanced exhibits must own a real boundary, show failure behavior, and emit observable results.
-- Exact blockers > false success.
-- Cross-language interfaces are versioned and explicit.
-
-See `AGENTS.md`, `QUALITY_CONTRACT.md`, and `docs/`.
+Never promote without matching evidence. Exact blockers > false success.
 
 ---
 
 ## For recruiters & interviewers
 
-This repository is deliberately small and high-signal.  
-It demonstrates:
-
-- Tool selection under constraint
-- Multi-language composition with contracts
-- Safety and authority boundaries
-- Evaluation and receipt thinking
-- Ability to say “not yet proven” instead of overclaiming
-
-If you are evaluating for a remote AI systems / agent / platform role, start with:
+Start with:
 
 1. `flagship/run_pipeline.py`
-2. The advanced exhibits for Python, Evaluation, TypeScript, and Rust
-3. `QUALITY_CONTRACT.md` and `docs/JOB_APPLICATION_SURFACE.md`
+2. Advanced exhibits: Python orchestrator, Eval harness, TypeScript gateway, Rust governor, C++ cache
+3. `docs/JOB_APPLICATION_SURFACE.md`
+
+Talking points emphasize tool selection under constraint, evaluation discipline, and honest gated floors.
 
 ---
 
 ## Rights
 
-All original code, designs, writing, and commercial concepts in this repository are **proprietary**.  
-All rights reserved. Collaboration is welcome through explicit discussion.  
-No open-source license is granted by default.
+All original code, designs, writing, and commercial concepts are **proprietary**.  
+All rights reserved. Collaboration welcome through explicit discussion.
 
 ---
 
 ## Status
 
-**Operational-alpha (v1.1).**  
-Core floors, evaluation harness, ONNX reference, flagship path, and CI are present and intentional.  
-Expansion is gated by unique boundary + evidence, not by desire for more languages.
+**Operational-alpha (v1.2).**  
+Fourteen floors with unique boundaries, dual exhibits, CI, and flagship path.  
+Expansion is gated by unique boundary + evidence.
