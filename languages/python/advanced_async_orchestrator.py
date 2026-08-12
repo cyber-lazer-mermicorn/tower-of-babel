@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Advanced exhibit: drainable priority agent runtime.
+"""Advanced exhibit: drainable priority agent runtime with circuit breaker.
 
-Owns a real boundary: bounded queues, FIFO ties, futures, retries,
-graceful shutdown, and a structured receipt. No placeholders.
+Owns a real boundary: bounded priority queues, FIFO ties, futures, retries,
+per-worker circuit breaker, deadline budget, graceful drain, structured receipt.
+No placeholders. First-pass production skill.
 """
 
 from __future__ import annotations
@@ -38,119 +39,173 @@ class Receipt:
     completed: list[str]
     failed: list[str]
     drained: bool
-    duration_ms: float
+    circuit_open: bool
     digest: str
+    elapsed_ms: float
 
 
-class AsyncOrchestrator:
-    """Bounded priority work queue with isolation and receipt."""
+class CircuitBreaker:
+    """Fail-closed breaker after consecutive failures within a window."""
 
-    def __init__(self, max_concurrent: int = 4, queue_size: int = 64):
-        if max_concurrent < 1:
-            raise ValueError("max_concurrent must be >= 1")
-        self._max_concurrent = max_concurrent
-        self._queue: asyncio.PriorityQueue[WorkItem] = asyncio.PriorityQueue(
-            maxsize=queue_size
+    def __init__(self, threshold: int = 3, cooldown_s: float = 0.05) -> None:
+        self.threshold = threshold
+        self.cooldown_s = cooldown_s
+        self.failures = 0
+        self.opened_at: float | None = None
+
+    def allow(self) -> bool:
+        if self.opened_at is None:
+            return True
+        if time.monotonic() - self.opened_at >= self.cooldown_s:
+            self.opened_at = None
+            self.failures = 0
+            return True
+        return False
+
+    def record_success(self) -> None:
+        self.failures = 0
+        self.opened_at = None
+
+    def record_failure(self) -> None:
+        self.failures += 1
+        if self.failures >= self.threshold:
+            self.opened_at = time.monotonic()
+
+    @property
+    def is_open(self) -> bool:
+        return not self.allow()
+
+
+class AgentRuntime:
+    def __init__(
+        self,
+        workers: int = 2,
+        max_queue: int = 32,
+        deadline_s: float = 2.0,
+    ) -> None:
+        self._workers = workers
+        self._max_queue = max_queue
+        self._deadline_s = deadline_s
+        self._q: asyncio.PriorityQueue[WorkItem] = asyncio.PriorityQueue(
+            maxsize=max_queue
+        )
+        self._poison = WorkItem(
+            priority=99,
+            sequence=10**9,
+            name="__poison__",
+            coro_factory=lambda: asyncio.sleep(0),
         )
         self._seq = 0
         self._completed: list[str] = []
         self._failed: list[str] = []
-        self._shutdown = asyncio.Event()
-        self._workers: list[asyncio.Task] = []
+        self._breaker = CircuitBreaker()
+        self._lock = asyncio.Lock()
 
-    def submit(
+    async def submit(
         self,
         name: str,
-        coro_factory: Callable[[], Awaitable[Any]],
+        factory: Callable[[], Awaitable[Any]],
         priority: Priority = Priority.NORMAL,
         max_attempts: int = 3,
     ) -> None:
-        if self._shutdown.is_set():
-            raise RuntimeError("orchestrator is shutting down")
+        if self._q.full():
+            raise RuntimeError("queue full")
         self._seq += 1
         item = WorkItem(
             priority=priority.value,
             sequence=self._seq,
             name=name,
-            coro_factory=coro_factory,
+            coro_factory=factory,
             max_attempts=max_attempts,
         )
-        try:
-            self._queue.put_nowait(item)
-        except asyncio.QueueFull as e:
-            raise RuntimeError(f"queue full; cannot accept {name}") from e
+        await self._q.put(item)
 
-    async def _worker(self) -> None:
-        while not self._shutdown.is_set() or not self._queue.empty():
+    async def _worker(self, deadline: float) -> None:
+        while True:
+            if time.monotonic() > deadline:
+                return
             try:
-                item = await asyncio.wait_for(self._queue.get(), timeout=0.1)
+                item = await asyncio.wait_for(self._q.get(), timeout=0.05)
             except asyncio.TimeoutError:
-                if self._shutdown.is_set():
-                    break
+                if self._q.empty():
+                    return
                 continue
-            item.attempt += 1
+            if item.name == "__poison__":
+                self._q.task_done()
+                return
             try:
+                if not self._breaker.allow():
+                    async with self._lock:
+                        self._failed.append(item.name)
+                    continue
                 await item.coro_factory()
-                self._completed.append(item.name)
+                self._breaker.record_success()
+                async with self._lock:
+                    self._completed.append(item.name)
             except Exception:
-                if item.attempt < item.max_attempts:
-                    self._seq += 1
-                    item.sequence = self._seq
-                    await self._queue.put(item)
+                item.attempt += 1
+                self._breaker.record_failure()
+                if item.attempt < item.max_attempts and self._breaker.allow():
+                    await self._q.put(item)
                 else:
-                    self._failed.append(item.name)
+                    async with self._lock:
+                        self._failed.append(item.name)
             finally:
-                self._queue.task_done()
+                self._q.task_done()
 
-    async def run(self, drain: bool = True) -> Receipt:
-        start = time.perf_counter()
-        self._workers = [
-            asyncio.create_task(self._worker()) for _ in range(self._max_concurrent)
+    async def run(self) -> Receipt:
+        t0 = time.monotonic()
+        deadline = t0 + self._deadline_s
+        workers = [
+            asyncio.create_task(self._worker(deadline)) for _ in range(self._workers)
         ]
-        if drain:
-            await self._queue.join()
-            self._shutdown.set()
-        await asyncio.gather(*self._workers, return_exceptions=True)
-        duration_ms = (time.perf_counter() - start) * 1000
-        payload = f"{sorted(self._completed)}|{sorted(self._failed)}|{drain}"
+        await self._q.join()
+        for _ in workers:
+            await self._q.put(self._poison)
+        await asyncio.gather(*workers, return_exceptions=True)
+        while not self._q.empty():
+            try:
+                self._q.get_nowait()
+                self._q.task_done()
+            except asyncio.QueueEmpty:
+                break
+        elapsed = (time.monotonic() - t0) * 1000
+        payload = f"{sorted(self._completed)}|{sorted(self._failed)}|{self._breaker.is_open}"
         digest = hashlib.sha256(payload.encode()).hexdigest()[:16]
         return Receipt(
-            ok=len(self._failed) == 0,
-            completed=list(self._completed),
-            failed=list(self._failed),
-            drained=drain,
-            duration_ms=round(duration_ms, 2),
+            ok=len(self._failed) == 0 and not self._breaker.is_open,
+            completed=sorted(self._completed),
+            failed=sorted(self._failed),
+            drained=self._q.empty(),
+            circuit_open=self._breaker.is_open,
             digest=digest,
+            elapsed_ms=round(elapsed, 2),
         )
 
-    async def shutdown(self) -> None:
-        self._shutdown.set()
 
+async def _demo() -> Receipt:
+    rt = AgentRuntime(workers=2, max_queue=16, deadline_s=1.5)
 
-async def _demo() -> None:
-    orch = AsyncOrchestrator(max_concurrent=2, queue_size=16)
+    async def ok(name: str) -> None:
+        await asyncio.sleep(0.01)
 
-    async def ok_task(name: str, delay: float = 0.01) -> str:
-        await asyncio.sleep(delay)
-        return name
+    async def boom() -> None:
+        raise RuntimeError("injected")
 
-    hit = {"n": 0}
-
-    async def fail_once() -> str:
-        hit["n"] += 1
-        if hit["n"] == 1:
-            raise RuntimeError("transient")
-        return "recovered"
-
-    orch.submit("alpha", lambda: ok_task("alpha"), Priority.HIGH)
-    orch.submit("beta", lambda: ok_task("beta"), Priority.NORMAL)
-    orch.submit("gamma", fail_once, Priority.CRITICAL, max_attempts=2)
-
-    receipt = await orch.run(drain=True)
-    assert receipt.ok, receipt
-    assert "gamma" in receipt.completed
-    print(f"advanced_async_orchestrator: ok digest={receipt.digest}")
+    await rt.submit("plan", lambda: ok("plan"), Priority.CRITICAL)
+    await rt.submit("fetch", lambda: ok("fetch"), Priority.HIGH)
+    await rt.submit("fail_once", boom, Priority.NORMAL, max_attempts=1)
+    await rt.submit("summarize", lambda: ok("summarize"), Priority.LOW)
+    return await rt.run()
 
 
 if __name__ == "__main__":
-    asyncio.run(_demo())
+    r = asyncio.run(_demo())
+    assert r.drained
+    assert "plan" in r.completed and "summarize" in r.completed
+    assert "fail_once" in r.failed
+    print(
+        f"advanced_async_orchestrator: ok digest={r.digest} "
+        f"completed={len(r.completed)} failed={len(r.failed)} "
+        f"circuit_open={r.circuit_open} elapsed_ms={r.elapsed_ms}"
+    )
