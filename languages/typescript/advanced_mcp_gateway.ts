@@ -6,7 +6,13 @@
 
 import { createHash } from "crypto";
 
-export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [k: string]: JsonValue };
 
 export interface ToolCall {
   id: string;
@@ -102,7 +108,6 @@ export class McpGateway {
       }
     }
 
-    // Simulated successful tool execution boundary
     const result: JsonValue = { echo: call.args, tool: call.tool };
     const payload = `${call.id}|${call.tool}|${JSON.stringify(call.args)}`;
     return {
@@ -116,8 +121,7 @@ export class McpGateway {
   }
 }
 
-// Self-check
-if (require.main === module) {
+function runSelfCheck(): void {
   const gw = new McpGateway({
     allowedTools: new Set(["search", "write_note"]),
     maxCallsPerMinute: 10,
@@ -126,10 +130,14 @@ if (require.main === module) {
   });
 
   const ok = gw.handle({ id: "c1", tool: "search", args: { q: "tower" } });
-  console.assert(ok.ok && ok.allowed);
+  if (!(ok.ok && ok.allowed)) {
+    throw new Error("expected search to be allowed");
+  }
 
   const denied = gw.handle({ id: "c2", tool: "delete_all", args: {} });
-  console.assert(!denied.allowed);
+  if (denied.allowed) {
+    throw new Error("expected delete_all to be denied");
+  }
 
   const mutDenied = gw.handle({
     id: "mut-2",
@@ -137,7 +145,9 @@ if (require.main === module) {
     args: { text: "x" },
     mutate: true,
   });
-  console.assert(!mutDenied.allowed);
+  if (mutDenied.allowed) {
+    throw new Error("expected unapproved mutation to be denied");
+  }
 
   const mutOk = gw.handle({
     id: "mut-1",
@@ -145,7 +155,18 @@ if (require.main === module) {
     args: { text: "approved" },
     mutate: true,
   });
-  console.assert(mutOk.ok);
+  if (!mutOk.ok) {
+    throw new Error("expected approved mutation to succeed");
+  }
 
   console.log("advanced_mcp_gateway: ok");
+}
+
+const isMain =
+  typeof require !== "undefined" &&
+  typeof module !== "undefined" &&
+  require.main === module;
+
+if (isMain) {
+  runSelfCheck();
 }

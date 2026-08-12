@@ -12,7 +12,7 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable
 
 
 class Priority(Enum):
@@ -49,7 +49,9 @@ class AsyncOrchestrator:
         if max_concurrent < 1:
             raise ValueError("max_concurrent must be >= 1")
         self._max_concurrent = max_concurrent
-        self._queue: asyncio.PriorityQueue[WorkItem] = asyncio.PriorityQueue(maxsize=queue_size)
+        self._queue: asyncio.PriorityQueue[WorkItem] = asyncio.PriorityQueue(
+            maxsize=queue_size
+        )
         self._seq = 0
         self._completed: list[str] = []
         self._failed: list[str] = []
@@ -92,7 +94,6 @@ class AsyncOrchestrator:
                 self._completed.append(item.name)
             except Exception:
                 if item.attempt < item.max_attempts:
-                    # re-queue with same priority, later sequence
                     self._seq += 1
                     item.sequence = self._seq
                     await self._queue.put(item)
@@ -129,13 +130,15 @@ class AsyncOrchestrator:
 async def _demo() -> None:
     orch = AsyncOrchestrator(max_concurrent=2, queue_size=16)
 
-    async def ok_task(name: str, delay: float = 0.01):
+    async def ok_task(name: str, delay: float = 0.01) -> str:
         await asyncio.sleep(delay)
         return name
 
-    async def fail_once():
-        if not hasattr(fail_once, "_hit"):
-            fail_once._hit = True  # type: ignore
+    hit = {"n": 0}
+
+    async def fail_once() -> str:
+        hit["n"] += 1
+        if hit["n"] == 1:
             raise RuntimeError("transient")
         return "recovered"
 

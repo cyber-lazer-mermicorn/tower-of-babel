@@ -7,7 +7,20 @@ export function greet(name: string): string {
   return `Hello, ${name.trim()}`;
 }
 
-if (require.main === module) {
-  console.assert(greet("Tower") === "Hello, Tower");
+// Self-check (works under ts-node / tsx / compiled CJS)
+function runSelfCheck(): void {
+  const result = greet("Tower");
+  if (result !== "Hello, Tower") {
+    throw new Error(`unexpected greet result: ${result}`);
+  }
   console.log("easy_greet: ok");
+}
+
+const isMain =
+  typeof require !== "undefined" &&
+  typeof module !== "undefined" &&
+  require.main === module;
+
+if (isMain) {
+  runSelfCheck();
 }
