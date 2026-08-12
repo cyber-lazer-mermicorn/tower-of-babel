@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Easy exhibit: pure iterative Fibonacci.
-
-Teaches the core idea only. No production claims.
-"""
+"""Easy exhibit: pure iterative Fibonacci. Hardened: rejects bad input, deterministic."""
 
 def fibonacci(n: int) -> int:
+    if not isinstance(n, int):
+        raise TypeError("n must be int")
     if n < 0:
         raise ValueError("n must be non-negative")
     if n < 2:
@@ -19,4 +18,9 @@ if __name__ == "__main__":
     assert fibonacci(0) == 0
     assert fibonacci(1) == 1
     assert fibonacci(10) == 55
+    try:
+        fibonacci(-1)
+        raise SystemExit("expected ValueError")
+    except ValueError:
+        pass
     print("easy_fibonacci: ok")
