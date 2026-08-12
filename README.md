@@ -14,32 +14,25 @@ Governed technology map: dual exhibits, evidence gates, recruiter-readable proof
 
 ---
 
-## High-signal stack (v1.4 — 20 floors)
+## High-signal stack (v1.5 — 20 floors, skill-up)
 
-| # | Technology | Core boundary | Evidence |
-|---|------------|---------------|----------|
-| 1 | **Python** | Agents, evaluation, control planes | `tested` |
-| 2 | **TypeScript** | MCP/JSON-RPC gateways | `tested` |
-| 3 | **Rust** | Authority governors | `tested` |
-| 4 | **Go** | Telemetry trust boundary | `tested` |
-| 5 | **C++** | Bounded score cache | `tested` |
-| 6 | **Java** | Bounded work queue | `tested` |
-| 7 | **Evaluation** | Isolated scoring + digests | `tested` |
-| 8 | **ONNX** | Portable router reference | `tested` |
-| 9 | **Triton** | Fused attention oracle | `tested` |
-| 10 | **Julia** | Energy-audited orbits | `toolchain_gated` |
-| 11 | **Haskell** | Pure policy AST validation | `toolchain_gated` |
-| 12 | **Zig** | Arena allocator budget | `toolchain_gated` |
-| 13 | **Mojo** | SIMD tensor kernel sketch | `toolchain_gated` |
-| 14 | **Elixir** | Supervised mission worker | `toolchain_gated` |
-| 15 | **MLIR** | Attention pipeline IR lowering | `toolchain_gated` |
-| 16 | **Coq** | Constructive receipt-chain proofs | `toolchain_gated` |
-| 17 | **SQL + vectors** | Canonical + HNSW patterns | `service_gated` |
-| 18 | **WebAssembly** | Capability sandbox | `tested` |
-| 19 | **Protocol Buffers** | Mission + receipt | `tested` |
-| 20 | **Lean 4** | Authority invariants | `formally_verified` |
+Core advanced exhibits now demonstrate production-grade skill on each boundary:
 
-**Compiler intelligence**: MLIR. **Formal pair**: Lean 4 + Coq.
+| Technology | Skilled advanced boundary | Evidence |
+|------------|---------------------------|----------|
+| **Python** | Priority runtime + circuit breaker + deadline | `tested` |
+| **TypeScript** | MCP gateway + idempotency + mutation approval | `tested` |
+| **Rust** | Capability tokens + rate window + fail-closed | `tested` |
+| **Go** | Telemetry CRC + sequence metrics + oversize reject | `tested` |
+| **C++** | Score cache + utility eviction + TTL | `tested` |
+| **Eval** | Weighted isolation + flake budget | `tested` |
+| **ONNX** | Temperature top-k MoE + ORT probe | `tested` |
+| **Java / Triton / WASM / Protobuf** | Prior advanced boundaries | `tested` |
+| **Haskell / Zig / Mojo / Elixir / Julia / MLIR / Coq** | Complete exhibits | `toolchain_gated` |
+| **SQL** | Vector / RLS patterns | `service_gated` |
+| **Lean 4** | Authority invariants | `formally_verified` |
+
+**Compiler intelligence**: MLIR · **Formal pair**: Lean 4 + Coq
 
 ---
 
@@ -53,12 +46,12 @@ python -m tower build --all --allow-blocked
 python flagship/run_pipeline.py
 ```
 
-See [`RECEIPTS.md`](RECEIPTS.md) · [`docs/JOB_APPLICATION_SURFACE.md`](docs/JOB_APPLICATION_SURFACE.md) · [`QUALITY_CONTRACT.md`](QUALITY_CONTRACT.md)
+See [`RECEIPTS.md`](RECEIPTS.md) · [`docs/JOB_APPLICATION_SURFACE.md`](docs/JOB_APPLICATION_SURFACE.md)
 
 ---
 
 ## Rights
 
-Proprietary. All rights reserved. Collaboration by explicit discussion.
+Proprietary. All rights reserved.
 
-**Operational-alpha (v1.4).** Twenty floors. Expand only with unique boundary + evidence.
+**Operational-alpha (v1.5).** Twenty floors. Skill-up on unique boundaries only.
