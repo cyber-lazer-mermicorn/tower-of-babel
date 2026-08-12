@@ -1,0 +1,14 @@
+{
+  "version": "0.1.0",
+  "notes": "Initial operational-alpha status. Expand only with unique boundary + evidence.",
+  "floors": {
+    "python": {"evidence": "tested", "advanced_boundary": "drainable priority agent runtime"},
+    "typescript": {"evidence": "tested", "advanced_boundary": "governed MCP/JSON-RPC gateway"},
+    "rust": {"evidence": "tested", "advanced_boundary": "typed side-effect safety governor"},
+    "go": {"evidence": "tested", "advanced_boundary": "versioned telemetry trust boundary"},
+    "sql": {"evidence": "service_gated", "advanced_boundary": "tenant-isolated vector patterns"},
+    "wat": {"evidence": "tested", "advanced_boundary": "capability/fuel sandbox sketch"},
+    "protobuf": {"evidence": "tested", "advanced_boundary": "mission + receipt contract"},
+    "lean4": {"evidence": "formally_verified", "advanced_boundary": "monotone authority properties"}
+  }
+}

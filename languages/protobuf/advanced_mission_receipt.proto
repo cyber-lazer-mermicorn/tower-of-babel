@@ -1,0 +1,32 @@
+syntax = "proto3";
+package tower.mission;
+
+// Cross-language mission envelope + receipt contract.
+
+message Mission {
+  string mission_id = 1;
+  string objective = 2;
+  map<string, string> constraints = 3;
+  repeated string required_capabilities = 4;
+  uint64 created_unix_ms = 5;
+}
+
+message AuthorityDecision {
+  enum Verdict {
+    VERDICT_UNSPECIFIED = 0;
+    ALLOW = 1;
+    BLOCK = 2;
+  }
+  Verdict verdict = 1;
+  string reason = 2;
+  string governor_digest = 3;
+}
+
+message Receipt {
+  string receipt_id = 1;
+  string mission_id = 2;
+  AuthorityDecision decision = 3;
+  map<string, string> evidence = 4;
+  string content_digest = 5;
+  uint64 sealed_unix_ms = 6;
+}
