@@ -1,5 +1,5 @@
 # Canonical Tower authority — do not hand-edit generated surfaces
-version: "1.1.0"
+version: "1.2.0"
 name: tower-of-babel
 purpose: AI systems engineering Rosetta Stone for remote AI development roles
 
@@ -87,6 +87,62 @@ floors:
     easy: languages/onnx/easy_linear_model.py
     advanced: languages/onnx/advanced_moe_router_ref.py
     interfaces: [router_logits, router_receipt]
+
+  - id: cpp
+    name: C++
+    class: language
+    what: Low-level control with zero-cost abstractions and mature numerical libraries
+    where: Inference runtimes, cache systems, latency-sensitive services, engines
+    when: Performance and complex abstractions must coexist in one native binary
+    why: Deterministic ownership patterns, templates, SIMD access, systems-library depth
+    how: Bounded score cache with utility eviction and fingerprint receipt
+    evidence: tested
+    proof_class: behavioral
+    easy: languages/cpp/easy_vector.cpp
+    advanced: languages/cpp/advanced_kv_score_cache.cpp
+    interfaces: [score_cache, eviction_receipt]
+
+  - id: java
+    name: Java
+    class: language
+    what: JVM runtime baseline for enterprise services and portable bytecode deployment
+    where: Application servers, batch gateways, long-lived service boundaries
+    when: Operational contract is the JVM and cross-organization service longevity matters
+    why: Universal JVM ABI and mature concurrency utilities
+    how: Bounded work queue with abort policy and outcome digest
+    evidence: tested
+    proof_class: behavioral
+    easy: languages/java/easy_hello.java
+    advanced: languages/java/advanced_bounded_work_queue.java
+    interfaces: [work_queue, execution_receipt]
+
+  - id: triton
+    name: Triton (reference)
+    class: kernel_language
+    what: High-throughput GPU kernel ideas with Python syntax and block programming
+    where: Fused attention, normalization, custom inference operations
+    when: After profiling shows framework kernels inadequate and GPU is available
+    why: Exposes GPU performance without hand-authoring all CUDA indexing
+    how: Fused single-query attention host oracle; accelerator path hardware_gated
+    evidence: tested
+    proof_class: behavioral
+    easy: languages/triton/easy_vector_add.py
+    advanced: languages/triton/advanced_fused_attention_ref.py
+    interfaces: [attention_receipt]
+
+  - id: julia
+    name: Julia
+    class: language
+    what: High-level mathematical syntax with JIT-compiled numerical performance
+    where: ODE/PDE solvers, optimization, scientific machine learning, simulation
+    when: Researchers need expressive mathematics without abandoning native-speed kernels
+    why: Multiple dispatch and LLVM compilation unify interactive modeling with performance
+    how: Energy-audited velocity-Verlet orbital integration with drift diagnostics
+    evidence: toolchain_gated
+    proof_class: compile
+    easy: languages/julia/easy_matrix.jl
+    advanced: languages/julia/advanced_orbital_verlet.jl
+    interfaces: [orbital_state, energy_drift]
 
   - id: sql
     name: SQL / pgvector
