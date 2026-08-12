@@ -1,0 +1,85 @@
+{
+  "version": "1.1.0",
+  "floors": [
+    {
+      "id": "python",
+      "name": "Python",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/python/easy_fibonacci.py",
+      "advanced": "languages/python/advanced_async_orchestrator.py"
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/typescript/easy_greet.ts",
+      "advanced": "languages/typescript/advanced_mcp_gateway.ts"
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/rust/easy_counter.rs",
+      "advanced": "languages/rust/advanced_safety_governor.rs"
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/go/easy_ping.go",
+      "advanced": "languages/go/advanced_telemetry_decoder.go"
+    },
+    {
+      "id": "eval",
+      "name": "Evaluation Harness",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/eval/easy_score.py",
+      "advanced": "languages/eval/advanced_eval_harness.py"
+    },
+    {
+      "id": "onnx",
+      "name": "ONNX (reference router)",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/onnx/easy_linear_model.py",
+      "advanced": "languages/onnx/advanced_moe_router_ref.py"
+    },
+    {
+      "id": "sql",
+      "name": "SQL / pgvector",
+      "evidence": "service_gated",
+      "proof_class": "integration",
+      "easy": "languages/sql/easy_table.sql",
+      "advanced": "languages/sql/advanced_pgvector_hnsw.sql"
+    },
+    {
+      "id": "wat",
+      "name": "WebAssembly",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/wat/easy_add.wat",
+      "advanced": "languages/wat/advanced_wasm_sandbox.wat"
+    },
+    {
+      "id": "protobuf",
+      "name": "Protocol Buffers",
+      "evidence": "tested",
+      "proof_class": "behavioral",
+      "easy": "languages/protobuf/easy_user.proto",
+      "advanced": "languages/protobuf/advanced_mission_receipt.proto"
+    },
+    {
+      "id": "lean4",
+      "name": "Lean 4",
+      "evidence": "formally_verified",
+      "proof_class": "formal",
+      "easy": "languages/lean4/easy_logic.lean",
+      "advanced": "languages/lean4/advanced_truth_gate.lean"
+    }
+  ]
+}

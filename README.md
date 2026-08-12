@@ -5,6 +5,7 @@
 
 [![Status](https://img.shields.io/badge/status-operational--alpha-blue)](https://github.com/cyber-lazer-mermicorn/tower-of-babel)
 [![Evidence](https://img.shields.io/badge/evidence-gates-green)](quality/exhibit_status.json)
+[![CI](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml/badge.svg)](https://github.com/cyber-lazer-mermicorn/tower-of-babel/actions/workflows/tower.yml)
 
 This repository is a **governed technology map** for modern AI systems work.  
 It does not collect languages for decoration. It places technologies by measurable boundary advantage, supplies dual exhibits (easy + advanced), declares evidence state, and produces recruiter-readable proof.
@@ -12,6 +13,21 @@ It does not collect languages for decoration. It places technologies by measurab
 **Primary audience**: hiring managers and technical interviewers evaluating candidates for remote AI / ML / agent / systems roles.
 
 **Secondary audience**: operators and agents that need an honest, machine-readable technology contract.
+
+---
+
+## Complementary to the broader systems Tower
+
+This repository is **AI-job-optimized signal**.  
+A related, broader multi-language systems engineering Rosetta Stone lives at  
+[GlacierEQ/the-tower-of-babel](https://github.com/GlacierEQ/the-tower-of-babel).
+
+| Surface | Focus |
+|---------|--------|
+| **This Tower** | High-signal stack for remote AI / agent / platform roles; evaluation, safety governors, MCP contracts, receipts |
+| **GlacierEQ Tower** | Wide systems map (40 floors), formal methods depth, hardware/GPU/HDL coverage, federation-scale governance |
+
+They are complementary, not competitive. Use this repo when the hiring context is AI systems work; use the broader Tower when the conversation is full-stack systems engineering.
 
 ---
 
@@ -29,7 +45,7 @@ Every floor answers **What / Where / When / Why / How** and carries an evidence 
 
 ---
 
-## The high-signal stack (v1 floors)
+## The high-signal stack (v1.1 floors)
 
 Focused set optimized for 2026 AI remote roles. Expand only when a new floor earns a unique boundary.
 
@@ -39,12 +55,12 @@ Focused set optimized for 2026 AI remote roles. Expand only when a new floor ear
 | 2 | **TypeScript** | typed interfaces | MCP/JSON-RPC gateways, browser + Node agents, contracts | `tested` | [easy](languages/typescript/easy_greet.ts) | [advanced_mcp_gateway.ts](languages/typescript/advanced_mcp_gateway.ts) |
 | 3 | **Rust** | safety + systems | Authority governors, memory-safe side-effect control | `tested` | [easy](languages/rust/easy_counter.rs) | [advanced_safety_governor.rs](languages/rust/advanced_safety_governor.rs) |
 | 4 | **Go** | concurrent services | Telemetry, gateways, simple deployable workers | `tested` | [easy](languages/go/easy_ping.go) | [advanced_telemetry_decoder.go](languages/go/advanced_telemetry_decoder.go) |
-| 5 | **SQL + vectors** | durable state | Canonical store, embeddings, constraints, RLS patterns | `service_gated` | [easy](languages/sql/easy_table.sql) | [advanced_pgvector_hnsw.sql](languages/sql/advanced_pgvector_hnsw.sql) |
-| 6 | **WebAssembly** | sandbox | Capability-bounded tool execution | `tested` | [easy](languages/wat/easy_add.wat) | [advanced_wasm_sandbox.wat](languages/wat/advanced_wasm_sandbox.wat) |
-| 7 | **Protocol Buffers** | contracts | Cross-language mission envelopes + receipts | `tested` | [easy](languages/protobuf/easy_user.proto) | [advanced_mission_receipt.proto](languages/protobuf/advanced_mission_receipt.proto) |
-| 8 | **Lean 4** | formal | Receipt-chain / authority invariants (when required) | `formally_verified` | [easy](languages/lean4/easy_logic.lean) | [advanced_truth_gate.lean](languages/lean4/advanced_truth_gate.lean) |
-
-Additional floors (CUDA/Triton awareness, ONNX, eBPF, etc.) are admitted only when they own a non-duplicated boundary and carry real evidence.
+| 5 | **Evaluation Harness** | framework | Isolated case scoring, weighted metrics, promotion receipts | `tested` | [easy](languages/eval/easy_score.py) | [advanced_eval_harness.py](languages/eval/advanced_eval_harness.py) |
+| 6 | **ONNX (reference)** | model_format | Portable router/graph boundary with runtime admission probe | `tested` | [easy](languages/onnx/easy_linear_model.py) | [advanced_moe_router_ref.py](languages/onnx/advanced_moe_router_ref.py) |
+| 7 | **SQL + vectors** | durable state | Canonical store, embeddings, constraints, RLS patterns | `service_gated` | [easy](languages/sql/easy_table.sql) | [advanced_pgvector_hnsw.sql](languages/sql/advanced_pgvector_hnsw.sql) |
+| 8 | **WebAssembly** | sandbox | Capability-bounded tool execution | `tested` | [easy](languages/wat/easy_add.wat) | [advanced_wasm_sandbox.wat](languages/wat/advanced_wasm_sandbox.wat) |
+| 9 | **Protocol Buffers** | contracts | Cross-language mission envelopes + receipts | `tested` | [easy](languages/protobuf/easy_user.proto) | [advanced_mission_receipt.proto](languages/protobuf/advanced_mission_receipt.proto) |
+| 10 | **Lean 4** | formal | Receipt-chain / authority invariants (when required) | `formally_verified` | [easy](languages/lean4/easy_logic.lean) | [advanced_truth_gate.lean](languages/lean4/advanced_truth_gate.lean) |
 
 ---
 
@@ -75,6 +91,8 @@ See `flagship/` and run:
 ```bash
 python flagship/run_pipeline.py
 ```
+
+Local verification summary: [`RECEIPTS.md`](RECEIPTS.md).
 
 ---
 
@@ -142,8 +160,8 @@ It demonstrates:
 If you are evaluating for a remote AI systems / agent / platform role, start with:
 
 1. `flagship/run_pipeline.py`
-2. The advanced exhibits for Python, TypeScript, and Rust
-3. `QUALITY_CONTRACT.md`
+2. The advanced exhibits for Python, Evaluation, TypeScript, and Rust
+3. `QUALITY_CONTRACT.md` and `docs/JOB_APPLICATION_SURFACE.md`
 
 ---
 
@@ -157,6 +175,6 @@ No open-source license is granted by default.
 
 ## Status
 
-**Operational-alpha.**  
-Core floors and flagship path are present and intentional.  
+**Operational-alpha (v1.1).**  
+Core floors, evaluation harness, ONNX reference, flagship path, and CI are present and intentional.  
 Expansion is gated by unique boundary + evidence, not by desire for more languages.
