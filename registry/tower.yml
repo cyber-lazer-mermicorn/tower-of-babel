@@ -1,4 +1,4 @@
-version: "1.4.0"
+version: "1.5.0"
 name: tower-of-babel
 purpose: AI systems engineering Rosetta Stone for remote AI development roles
 
@@ -94,7 +94,7 @@ floors:
     where: Inference runtimes, cache systems, latency-sensitive services, engines
     when: Performance and complex abstractions must coexist in one native binary
     why: Deterministic ownership patterns, templates, SIMD access, systems-library depth
-    how: Bounded score cache with utility eviction and fingerprint receipt
+    how: Bounded score cache with TTL eviction and fingerprint receipt
     evidence: tested
     proof_class: behavioral
     easy: languages/cpp/easy_vector.cpp
@@ -122,7 +122,9 @@ floors:
     where: Fused attention, normalization, custom inference operations
     when: After profiling shows framework kernels inadequate and GPU is available
     why: Exposes GPU performance without hand-authoring all CUDA indexing
-    how: Fused single-query attention host oracle; accelerator path hardware_gated
+    how: Fused single-query attention host oracle (easy tested); accelerator path hardware_gated (advanced)
+    evidence_easy: tested
+    evidence_advanced: hardware_gated
     evidence: tested
     proof_class: behavioral
     easy: languages/triton/easy_vector_add.py
