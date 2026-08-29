@@ -1,0 +1,34 @@
+steps:
+  - label: ":white_check_mark: Validate registry"
+    command: python -m tower validate
+    key: validate
+
+  - label: ":gear: Generate surfaces"
+    command: python -m tower generate
+    key: generate
+    depends_on: validate
+
+  - label: ":hammer: Build all exhibits"
+    command: python -m tower build --all --allow-blocked
+    key: build
+    depends_on: generate
+
+  - label: ":test_tube: Run tests"
+    command: python -m pytest tests/ -v
+    key: test
+    depends_on: build
+
+  - label: ":receipt: Emit receipt"
+    command: python -m tower receipt --emit
+    key: receipt
+    depends_on: test
+
+  - label: ":stethoscope: Nervous system validation"
+    command: python scripts/validate_nervous_system.py
+    key: nervous-system
+    depends_on: receipt
+
+  - label: ":lock: Integrity proof"
+    command: python scripts/run_integrity_proof.py
+    key: integrity
+    depends_on: nervous-system
