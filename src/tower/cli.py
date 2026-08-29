@@ -1,4 +1,4 @@
-"""Tower CLI — validate, generate, build."""
+"""Tower CLI — validate, generate, build, megamind."""
 
 from __future__ import annotations
 
@@ -104,15 +104,57 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0 if all(r["status"] == "ok" for r in results) else 1
 
 
+def cmd_megamind(args: argparse.Namespace) -> int:
+    from tower.megamind import run_megamind
+    project_path = Path(args.project).resolve() if args.project else Path.cwd()
+    return run_megamind(
+        project_path=project_path,
+        start_wave=args.wave,
+        dry_run=args.dry_run,
+        json_output=args.json,
+    )
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="tower")
     sub = p.add_subparsers(dest="cmd", required=True)
+
     sub.add_parser("validate")
+
     g = sub.add_parser("generate")
     g.add_argument("--check", action="store_true")
+
     b = sub.add_parser("build")
     b.add_argument("--all", action="store_true")
     b.add_argument("--allow-blocked", action="store_true")
+
+    mm = sub.add_parser(
+        "megamind",
+        help="Run the Mastermind/Megamind autonomous build foundry against a project.",
+    )
+    mm.add_argument(
+        "--project",
+        default=None,
+        help="Path to the project to analyse. Defaults to current directory.",
+    )
+    mm.add_argument(
+        "--wave",
+        type=int,
+        default=0,
+        choices=list(range(11)),
+        help="Start from this wave number (0–10). Default: 0 (full run).",
+    )
+    mm.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Analyse and report only. Make no changes.",
+    )
+    mm.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human report. For downstream agent consumption.",
+    )
+
     args = p.parse_args()
     if args.cmd == "validate":
         raise SystemExit(cmd_validate(args))
@@ -120,6 +162,8 @@ def main() -> None:
         raise SystemExit(cmd_generate(args))
     if args.cmd == "build":
         raise SystemExit(cmd_build(args))
+    if args.cmd == "megamind":
+        raise SystemExit(cmd_megamind(args))
 
 
 if __name__ == "__main__":
