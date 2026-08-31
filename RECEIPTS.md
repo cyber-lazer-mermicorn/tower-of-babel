@@ -1,4 +1,16 @@
-# Local verification receipts (v1.5)
+# Local verification receipts
+
+## 2026-08-31 (sandbox re-run)
+
+| Surface | Result |
+|---------|--------|
+| `PYTHONPATH=src python -m tower validate` | ok (20 floors) |
+| `python -m tower generate --check` | ok (drift regenerated locally) |
+| `python -m tower build --all --allow-blocked` | ok |
+
+Gated floors remain exact-blocker honest.
+
+## Prior (v1.5)
 
 | Surface | Result |
 |---------|--------|
