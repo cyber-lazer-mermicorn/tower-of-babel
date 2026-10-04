@@ -1,6 +1,6 @@
 # Harden & Verify Pass
 
-_Last green run: 2026-08-31_
+_Last green run: 2026-10-04_
 
 ## CLI
 
@@ -13,11 +13,12 @@ PYTHONPATH=src python -m tower build --all --allow-blocked
 python flagship/run_pipeline.py
 ```
 
-## Results (2026-08-31)
+## Results (2026-10-04)
 
 - `validate: ok (20 floors)`
-- `generate --check: ok`
+- `generate --check: ok` (maturity + interfaces regenerated, then clean)
 - `build --all --allow-blocked: ok`
+- `flagship pipeline: ok`
 
 ## Evidence discipline
 
@@ -29,5 +30,5 @@ Grove STATUS tracks Tower as operational-alpha. Connector: [constellation-map](h
 
 ## Next (code)
 
-- Keep RECEIPTS.md aligned with last green run
-- Promote gated floors only with toolchain proof
+- Promote gated floors only with toolchain proof in CI
+- Keep receipts dated to last green run

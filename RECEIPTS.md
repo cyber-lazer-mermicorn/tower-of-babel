@@ -1,27 +1,34 @@
 # Local verification receipts
 
+## 2026-10-04 (completion pass)
+
+| Surface | Result |
+|---------|--------|
+| `PYTHONPATH=src python -m tower validate` | ok (20 floors) |
+| `python -m tower generate --check` | ok (drift fixed; maturity + interfaces committed) |
+| `python -m tower build --all --allow-blocked` | ok |
+| `python flagship/run_pipeline.py` | ok |
+
+Gated floors remain exact-blocker honest.
+
 ## 2026-08-31 (sandbox re-run)
 
 | Surface | Result |
 |---------|--------|
 | `PYTHONPATH=src python -m tower validate` | ok (20 floors) |
-| `python -m tower generate --check` | ok (drift regenerated locally) |
+| `python -m tower generate --check` | ok |
 | `python -m tower build --all --allow-blocked` | ok |
 
-Gated floors remain exact-blocker honest.
-
-## Prior (v1.5)
+## Prior (v1.5 skill-up)
 
 | Surface | Result |
 |---------|--------|
-| Skill-up: Python circuit breaker orchestrator | ok |
-| Skill-up: Rust capability governor | ok |
-| Skill-up: Go telemetry metrics | ok |
-| Skill-up: TypeScript idempotent MCP gateway | ok |
-| Skill-up: Eval flake budget harness | ok |
-| Skill-up: C++ TTL score cache | ok |
-| Skill-up: ONNX temperature router | ok |
+| Python circuit breaker orchestrator | ok |
+| Rust capability governor | ok |
+| Go telemetry metrics | ok |
+| TypeScript idempotent MCP gateway | ok |
+| Eval flake budget harness | ok |
+| C++ TTL score cache | ok |
+| ONNX temperature router | ok |
 | Flagship pipeline | ok |
 | `tower validate` | ok (20 floors) |
-
-Each advanced exhibit deepened on its unique boundary without bloat.
