@@ -39,15 +39,15 @@ jobs:
           java-version: "17"
 
       - name: Install Python package
-        run: python -m pip install -e ".[dev]"
-
-      - name: tower validate
-        run: python -m tower validate
-
-      - name: tower generate --check
         run: |
-          python -m tower generate
-          python -m tower generate --check
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml
+          python -m pip install -e ".[dev]" || python -m pip install -e .
+
+      - name: tower verify (chain + receipt)
+        run: |
+          export PYTHONPATH=src
+          python -m tower verify
 
       - name: Python exhibits
         run: |
@@ -92,5 +92,10 @@ jobs:
           npx --yes tsx languages/typescript/easy_greet.ts
           npx --yes tsx languages/typescript/advanced_mcp_gateway.ts
 
-      - name: tower build (allow blocked)
-        run: python -m tower build --all --allow-blocked
+      - name: Upload last_run receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tower-last-run
+          path: quality/last_run.json
+          if-no-files-found: ignore

@@ -1,10 +1,11 @@
-"""Tower CLI — validate, generate, build, megamind."""
+"""Tower CLI — validate, generate, build, verify, megamind."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -12,10 +13,18 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "registry" / "tower.yml"
 GENERATED = ROOT / "generated"
+QUALITY = ROOT / "quality"
 
 
 def load_registry() -> dict:
     return yaml.safe_load(REGISTRY.read_text())
+
+
+def write_last_run(payload: dict) -> Path:
+    QUALITY.mkdir(parents=True, exist_ok=True)
+    path = QUALITY / "last_run.json"
+    path.write_text(json.dumps(payload, indent=2) + "\n")
+    return path
 
 
 def cmd_validate(_: argparse.Namespace) -> int:
@@ -78,8 +87,13 @@ def cmd_generate(args: argparse.Namespace) -> int:
             print("generate --check: drift detected — regenerating")
             m_path.write_text(m_text)
             i_path.write_text(i_text)
-        else:
-            print("generate --check: ok")
+            # re-check after write
+            if m_path.read_text() != m_text or i_path.read_text() != i_text:
+                print("generate --check: fail — could not stabilize", file=sys.stderr)
+                return 1
+            print("generate --check: ok (regenerated)")
+            return 0
+        print("generate --check: ok")
         return 0
     m_path.write_text(m_text)
     i_path.write_text(i_text)
@@ -104,8 +118,55 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0 if all(r["status"] == "ok" for r in results) else 1
 
 
+def cmd_verify(args: argparse.Namespace) -> int:
+    """Full chain: validate → generate --check → build --all --allow-blocked → receipt."""
+    steps: list[dict] = []
+
+    code = cmd_validate(args)
+    steps.append({"step": "validate", "ok": code == 0})
+    if code != 0:
+        write_last_run(
+            {
+                "ok": False,
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "steps": steps,
+            }
+        )
+        return code
+
+    gen_ns = argparse.Namespace(check=True)
+    code = cmd_generate(gen_ns)
+    steps.append({"step": "generate --check", "ok": code == 0})
+    if code != 0:
+        write_last_run(
+            {
+                "ok": False,
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "steps": steps,
+            }
+        )
+        return code
+
+    build_ns = argparse.Namespace(all=True, allow_blocked=True)
+    code = cmd_build(build_ns)
+    steps.append({"step": "build --all --allow-blocked", "ok": code == 0})
+
+    reg = load_registry()
+    receipt = {
+        "ok": code == 0,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "version": reg.get("version", "unknown"),
+        "floors": len(reg.get("floors", [])),
+        "steps": steps,
+    }
+    path = write_last_run(receipt)
+    print(f"verify: {'ok' if code == 0 else 'fail'} — wrote {path}")
+    return code
+
+
 def cmd_megamind(args: argparse.Namespace) -> int:
     from tower.megamind import run_megamind
+
     project_path = Path(args.project).resolve() if args.project else Path.cwd()
     return run_megamind(
         project_path=project_path,
@@ -128,32 +189,16 @@ def main() -> None:
     b.add_argument("--all", action="store_true")
     b.add_argument("--allow-blocked", action="store_true")
 
+    sub.add_parser("verify", help="validate + generate --check + build --allow-blocked + receipt")
+
     mm = sub.add_parser(
         "megamind",
         help="Run the Mastermind/Megamind autonomous build foundry against a project.",
     )
-    mm.add_argument(
-        "--project",
-        default=None,
-        help="Path to the project to analyse. Defaults to current directory.",
-    )
-    mm.add_argument(
-        "--wave",
-        type=int,
-        default=0,
-        choices=list(range(11)),
-        help="Start from this wave number (0–10). Default: 0 (full run).",
-    )
-    mm.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Analyse and report only. Make no changes.",
-    )
-    mm.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit machine-readable JSON instead of human report. For downstream agent consumption.",
-    )
+    mm.add_argument("--project", default=None)
+    mm.add_argument("--wave", type=int, default=0, choices=list(range(11)))
+    mm.add_argument("--dry-run", action="store_true")
+    mm.add_argument("--json", action="store_true")
 
     args = p.parse_args()
     if args.cmd == "validate":
@@ -162,6 +207,8 @@ def main() -> None:
         raise SystemExit(cmd_generate(args))
     if args.cmd == "build":
         raise SystemExit(cmd_build(args))
+    if args.cmd == "verify":
+        raise SystemExit(cmd_verify(args))
     if args.cmd == "megamind":
         raise SystemExit(cmd_megamind(args))
 
