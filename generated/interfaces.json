@@ -2,83 +2,142 @@
   "floors": [
     {
       "id": "python",
-      "interfaces": ["mission_plan", "evaluation_score", "receipt"]
+      "interfaces": [
+        "mission_plan",
+        "evaluation_score",
+        "receipt"
+      ]
     },
     {
       "id": "typescript",
-      "interfaces": ["ingress_request", "mcp_tool_call", "receipt"]
+      "interfaces": [
+        "ingress_request",
+        "mcp_tool_call",
+        "receipt"
+      ]
     },
     {
       "id": "rust",
-      "interfaces": ["authority_decision", "safety_receipt"]
+      "interfaces": [
+        "authority_decision",
+        "safety_receipt"
+      ]
     },
     {
       "id": "go",
-      "interfaces": ["telemetry_event", "decode_receipt"]
+      "interfaces": [
+        "telemetry_event",
+        "decode_receipt"
+      ]
     },
     {
       "id": "eval",
-      "interfaces": ["eval_case", "eval_receipt"]
+      "interfaces": [
+        "eval_case",
+        "eval_receipt"
+      ]
     },
     {
       "id": "onnx",
-      "interfaces": ["router_logits", "router_receipt"]
+      "interfaces": [
+        "router_logits",
+        "router_receipt"
+      ]
     },
     {
       "id": "cpp",
-      "interfaces": ["score_cache", "eviction_receipt"]
+      "interfaces": [
+        "score_cache",
+        "eviction_receipt"
+      ]
     },
     {
       "id": "java",
-      "interfaces": ["work_queue", "execution_receipt"]
+      "interfaces": [
+        "work_queue",
+        "execution_receipt"
+      ]
     },
     {
       "id": "triton",
-      "interfaces": ["attention_receipt"]
+      "interfaces": [
+        "attention_receipt"
+      ]
     },
     {
       "id": "julia",
-      "interfaces": ["orbital_state", "energy_drift"]
+      "interfaces": [
+        "orbital_state",
+        "energy_drift"
+      ]
     },
     {
       "id": "haskell",
-      "interfaces": ["policy_ast", "decision_receipt"]
+      "interfaces": [
+        "policy_ast",
+        "decision_receipt"
+      ]
     },
     {
       "id": "zig",
-      "interfaces": ["arena", "budget_receipt"]
+      "interfaces": [
+        "arena",
+        "budget_receipt"
+      ]
     },
     {
       "id": "mojo",
-      "interfaces": ["tensor_kernel"]
+      "interfaces": [
+        "tensor_kernel"
+      ]
     },
     {
       "id": "elixir",
-      "interfaces": ["mission_worker", "supervision_receipt"]
+      "interfaces": [
+        "mission_worker",
+        "supervision_receipt"
+      ]
     },
     {
       "id": "mlir",
-      "interfaces": ["attention_ir", "lowering_contract"]
+      "interfaces": [
+        "attention_ir",
+        "lowering_contract"
+      ]
     },
     {
       "id": "coq",
-      "interfaces": ["receipt_chain", "ordered_invariant"]
+      "interfaces": [
+        "receipt_chain",
+        "ordered_invariant"
+      ]
     },
     {
       "id": "sql",
-      "interfaces": ["canonical_state", "vector_query"]
+      "interfaces": [
+        "canonical_state",
+        "vector_query"
+      ]
     },
     {
       "id": "wat",
-      "interfaces": ["sandbox_result", "capability_receipt"]
+      "interfaces": [
+        "sandbox_result",
+        "capability_receipt"
+      ]
     },
     {
       "id": "protobuf",
-      "interfaces": ["mission", "receipt"]
+      "interfaces": [
+        "mission",
+        "receipt"
+      ]
     },
     {
       "id": "lean4",
-      "interfaces": ["invariant_proof"]
+      "interfaces": [
+        "invariant_proof"
+      ]
     }
   ]
 }

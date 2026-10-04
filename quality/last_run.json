@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "checked_at": "2026-10-04T17:06:20.452165+00:00",
+  "version": "1.5.0",
+  "floors": 20,
+  "steps": [
+    {"step": "validate", "ok": true},
+    {"step": "generate --check", "ok": true},
+    {"step": "build --all --allow-blocked", "ok": true}
+  ]
+}
